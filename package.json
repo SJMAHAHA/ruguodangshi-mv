@@ -1,0 +1,42 @@
+{
+  "name": "ruguodangshi-pilot",
+  "version": "1.0.0",
+  "description": "《如果当时》动画 MV（30 秒试片 + 全曲完整版）— Remotion + React + TypeScript",
+  "repository": {},
+  "license": "UNLICENSED",
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  },
+  "private": true,
+  "dependencies": {
+    "@remotion/cli": "4.0.531",
+    "@remotion/fonts": "4.0.531",
+    "@remotion/media": "4.0.531",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.531"
+  },
+  "devDependencies": {
+    "@remotion/bundler": "4.0.531",
+    "@remotion/eslint-config-flat": "4.0.531",
+    "@remotion/renderer": "4.0.531",
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "eslint": "9.39.1",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "studio": "remotion studio",
+    "prepare-audio": "bash scripts/prepare-audio.sh",
+    "still": "remotion still RuguoPilot out/still.png --frame=0",
+    "render:preview": "remotion render RuguoPilot out/preview_960x540.mp4 --scale=0.5 --codec=h264 --audio-codec=aac --crf=23",
+    "render": "remotion render RuguoPilot out/render_raw_1080p.mp4 --codec=h264 --image-format=png --pixel-format=yuv420p --color-space=bt709 --crf=14 --audio-codec=aac --audio-bitrate=320k && bash scripts/finalize.sh",
+    "render:full:preview": "remotion render RuguoFull out/full_preview_960x540.mp4 --scale=0.5 --codec=h264 --audio-codec=aac --crf=23",
+    "render:full": "bash scripts/render-full-segments.sh && bash scripts/finalize-full.sh out/segs/seg_*.mp4",
+    "lint": "eslint src && tsc",
+    "finalize": "bash scripts/finalize.sh",
+    "finalize:full": "bash scripts/finalize-full.sh out/segs/seg_*.mp4"
+  }
+}

@@ -1,0 +1,13 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Ignore the output video from Git but not videos you import into src/.
+out
+
+# 原曲音频不放进仓库（版权归原作者）；用 npm run prepare-audio 从本地原曲生成
+public/audio/
+
+# 完整版成片超过 GitHub 单文件 100 MB 上限，放在 Release
+deliverables/ruguodangshi_full_1080p.mp4
