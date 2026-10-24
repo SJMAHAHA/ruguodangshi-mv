@@ -2,7 +2,7 @@
 
 > **状态（2026-10-24）：第 0 批角色设定8张已交付，待用户和Claude确认。** 素材在 `incoming/chars/model/`，预览在 `public/codex-assets/characters-model-v1/preview.html`。确认后制作第 1 批A3/S2；第 2 批起等试验镜头验收后再定。
 >
-> - **第 0 批**（角色设定）：需求和参考在 [refs/chars/model/README.md](refs/chars/model/README.md)。**先单独交付**，确认后再做第 1 批。
+> - **第 0 批**（角色设定）：✅ 已交付，用户已确认（2026-10-24），见 [REVIEW.md](refs/chars/model/REVIEW.md)。之后所有人物图都以 `incoming/chars/model/` 这一版为准。
 > - **第 1 批**（试验镜头）：[A3](refs/chars/A3/README.md)、[S2](refs/chars/S2/README.md)，每份都写明了画布、对位坐标、每张图的姿势和时间点、分层和光。
 >
 > 起因（2026-10-24）：Codex 做的 A3 水粉人物试片（`public/codex-assets/a3-painterly-v1/`）比代码画的骨架人物好看，用户决定全片人物都改成 Codex 画的水粉人物。
