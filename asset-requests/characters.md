@@ -1,11 +1,11 @@
-# 第五批（草案）：用水粉人物替换代码人物
+# 第五批：用水粉人物替换代码人物
 
-> **状态（2026-10-24）：第 0 批角色设定8张已交付，待用户和Claude确认。** 素材在 `incoming/chars/model/`，预览在 `public/codex-assets/characters-model-v1/preview.html`。确认后制作第 1 批A3/S2；第 2 批起等试验镜头验收后再定。
+> **> **状态（2026-10-24）：第 0 批已确认；第 1 批已交付并接入片中，等用户看审片片段后决定是否铺开。**
 >
-> - **第 0 批**（角色设定）：✅ 已交付，用户已确认（2026-10-24），见 [REVIEW.md](refs/chars/model/REVIEW.md)。之后所有人物图都以 `incoming/chars/model/` 这一版为准。
-> - **第 1 批**（试验镜头）：[A3](refs/chars/A3/README.md)、[S2](refs/chars/S2/README.md)，每份都写明了画布、对位坐标、每张图的姿势和时间点、分层和光。
+> - **第 0 批**（角色设定）：✅ 已交付，用户已确认，见 [REVIEW.md](refs/chars/model/REVIEW.md)。之后所有人物图都以 `incoming/chars/model/` 这一版为准。
+> - **第 1 批**（试验镜头）：✅ [A3](refs/chars/A3/README.md) 12 张、[S2](refs/chars/S2/README.md) 45 张已交付（[交付说明](../incoming/HANDOFF-BATCH5-PHASE1.md)），已接入片中（`public/chars/`，`ASSETS.paintedA3 / paintedS2`）。
 >
-> 起因（2026-10-24）：Codex 做的 A3 水粉人物试片（`public/codex-assets/a3-painterly-v1/`）比代码画的骨架人物好看，用户决定全片人物都改成 Codex 画的水粉人物。
+（2026-10-24）：Codex 做的 A3 水粉人物试片（`public/codex-assets/a3-painterly-v1/`）比代码画的骨架人物好看，用户决定全片人物都改成 Codex 画的水粉人物。
 
 ## 1. 难点：画出来的人要会动
 
