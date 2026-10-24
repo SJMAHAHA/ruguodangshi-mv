@@ -63,9 +63,12 @@ D1 是贴着一面长墙横移跟拍他走路的腿，镜头放大 2.45 倍。�
 - **地面线**：墙根和地面交界在画布上 y = 840 像素（世界 y = 0）。人走在这条线上，必须水平、两段等高。
 - 深夜雨刚停，墙面湿，有路灯的柔和光晕，地面有积水和倒影，和现在这张气氛一致；只是更清晰、细节更多。不要画人。不透明 JPG。
 
-## 第五批：水粉人物替换代码人物 —— 第 0 批已交付，待确认（2026-10-24）
+## 第五批：水粉人物替换代码人物 —— 第 0 批已确认，第 1 批开工（2026-10-24）
 
-见 [characters.md](characters.md)。第 0 批8张角色设定已放入 `incoming/chars/model/`，含 `manifest.json`、单独视角/表情裁图和检查记录；[交付说明](../incoming/HANDOFF-BATCH5-MODEL.md)。预览在 `public/codex-assets/characters-model-v1/preview.html`。按[需求](refs/chars/model/README.md)先确认角色，再做第 1 批试验镜头 [A3](refs/chars/A3/README.md)、[S2](refs/chars/S2/README.md)。
+见 [characters.md](characters.md)。
+
+- **第 0 批**：8 张角色设定在 `incoming/chars/model/`，[交付说明](../incoming/HANDOFF-BATCH5-MODEL.md)。**用户已确认**，之后所有人物图都以这一版为准；[检查意见](refs/chars/model/REVIEW.md) 里有两条画镜头时要注意的事。
+- **现在开始第 1 批**试验镜头：[A3](refs/chars/A3/README.md)（12 张）、[S2](refs/chars/S2/README.md)（45 张），交到 `incoming/chars/A3/`、`incoming/chars/S2/`。
 
 ## 第六批：替换不合适的 Seedream 旧图（2026-10-24）
 
