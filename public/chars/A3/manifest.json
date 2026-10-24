@@ -1,0 +1,402 @@
+{
+  "version": 1,
+  "batch": 5,
+  "phase": 1,
+  "shot": "A3",
+  "status": "delivered-for-shot-review",
+  "canvas": [
+    3840,
+    2160
+  ],
+  "format": "RGBA PNG",
+  "count": 12,
+  "generator": "built-in image_gen",
+  "artworkOrigin": "separate AI-generated poses using approved phase-0 character references",
+  "processing": "alpha cleanup, premultiplied resize, scene anchor registration, local eye/mouth patches, collar occlusion, separate painted-leg registration; original sources preserved",
+  "nativeResolutionNote": "AI source files are approximately 1.57 MP, varying portrait/square sizes; 3840×2160 is the registered delivery canvas, not native 4K synthesis.",
+  "compositeOrder": [
+    "her",
+    "him_body",
+    "him_head state"
+  ],
+  "assets": [
+    {
+      "file": "her.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her-phonefix.raw.png",
+      "bbox": [
+        2096,
+        380,
+        3093,
+        2160
+      ],
+      "headCenter": [
+        2700,
+        640
+      ],
+      "shoulderY": 960,
+      "phoneHand": [
+        2680,
+        2080
+      ],
+      "sha256": "22af2f5d0235e37a19a7f3536f62c76d6530ec3e27d9cc65cef9350b680f7c48",
+      "useZh": "低头看手机，含手机与屏幕光；全程",
+      "nativeSourceSize": [
+        993,
+        1584
+      ]
+    },
+    {
+      "file": "her_eyes-closed.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_eyes-closed.raw.png",
+      "bbox": [
+        2096,
+        380,
+        3093,
+        2160
+      ],
+      "headCenter": [
+        2700,
+        640
+      ],
+      "shoulderY": 960,
+      "phoneHand": [
+        2680,
+        2080
+      ],
+      "base": "her.png",
+      "mask": "source/her_eyes-closed.patch-mask.png",
+      "outsideMaskChangedPixels": 0,
+      "alphaChangedPixels": 0,
+      "changedPixels": 8587,
+      "patchBBox": [
+        2603,
+        694,
+        2845,
+        768
+      ],
+      "sha256": "20c061996f65f050af4f8c1152e1fecbed02a4716b08401452c4f36b2bafa1fc",
+      "useZh": "她的眨眼局部状态",
+      "nativeSourceSize": [
+        993,
+        1584
+      ]
+    },
+    {
+      "file": "him_body.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_body.raw.png",
+      "bbox": [
+        1075,
+        850,
+        2036,
+        2160
+      ],
+      "collar": [
+        1540,
+        920
+      ],
+      "shoulderY": 980,
+      "sha256": "9720a1eace308610c7b3576833f68c15e18a9ffca1dc32d4b83c99707c9dcaa9",
+      "useZh": "身体、领口和手；全程",
+      "nativeSourceSize": [
+        1086,
+        1448
+      ]
+    },
+    {
+      "file": "him_head-h1-closed.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-h1-closed.raw.png",
+      "bbox": [
+        1261,
+        256,
+        1829,
+        945
+      ],
+      "neckRoot": [
+        1510,
+        945
+      ],
+      "scale": 0.6,
+      "base": "him_head-h1.png",
+      "mask": "source/him_head-h1-closed.patch-mask.png",
+      "outsideMaskChangedPixels": 0,
+      "alphaChangedPixels": 0,
+      "changedPixels": 6507,
+      "patchBBox": [
+        1537,
+        610,
+        1765,
+        677
+      ],
+      "sha256": "05fb75b81b7f9b49d38097d0b7d688439aa1ac160cab065d819642e5f0b6c94f",
+      "useZh": "对应姿势闭眼；眨眼用",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-h1.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-h1.raw.png",
+      "bbox": [
+        1261,
+        256,
+        1829,
+        945
+      ],
+      "neckRoot": [
+        1510,
+        945
+      ],
+      "scale": 0.6,
+      "sha256": "c4e7834721ab1140b449671a4419efad3aafcaed5282ee6e2adeb07eeb66ac95",
+      "useZh": "看向她，略低头；13.05–14.0 s",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-h1b.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-h1b.raw.png",
+      "bbox": [
+        1232,
+        247,
+        1808,
+        927
+      ],
+      "neckRoot": [
+        1510,
+        945
+      ],
+      "scale": 0.6,
+      "sha256": "3b3429502e226ebed7395f0044d0a331e93d44205100e556b5d5ca999bda27fd",
+      "useZh": "h1→h2 中间状态；14.5 s",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-h2-closed.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-h2-closed.raw.png",
+      "bbox": [
+        1225,
+        251,
+        1790,
+        945
+      ],
+      "neckRoot": [
+        1510,
+        945
+      ],
+      "scale": 0.6,
+      "base": "him_head-h2.png",
+      "mask": "source/him_head-h2-closed.patch-mask.png",
+      "outsideMaskChangedPixels": 0,
+      "alphaChangedPixels": 0,
+      "changedPixels": 7428,
+      "patchBBox": [
+        1528,
+        562,
+        1746,
+        632
+      ],
+      "sha256": "77a2fe53c520c88174a0255b0adc361c28be13ccdc59120b5fa943f50415768f",
+      "useZh": "对应姿势闭眼；眨眼用",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-h2-open.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-h2-open.raw.png",
+      "bbox": [
+        1225,
+        251,
+        1790,
+        945
+      ],
+      "neckRoot": [
+        1510,
+        945
+      ],
+      "scale": 0.6,
+      "base": "him_head-h2.png",
+      "mask": "source/him_head-h2-open.patch-mask.png",
+      "outsideMaskChangedPixels": 0,
+      "alphaChangedPixels": 0,
+      "changedPixels": 6414,
+      "patchBBox": [
+        1569,
+        700,
+        1719,
+        774
+      ],
+      "sha256": "c79528c1679bc0b1594e6e898c7c76808c048585913867f3cf81366013a2d779",
+      "useZh": "同 h2，微张嘴；15.6–16.5 s",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-h2.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-h2.raw.png",
+      "bbox": [
+        1225,
+        251,
+        1790,
+        945
+      ],
+      "neckRoot": [
+        1510,
+        945
+      ],
+      "scale": 0.6,
+      "sha256": "47b1aea75f6f11d802e6a6bec578fb3db2c5f668bd6050419e583eab7420cf96",
+      "useZh": "更转向她、抬眼、嘴闭；15.0–16.8 s",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-h2b.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-h2b.raw.png",
+      "bbox": [
+        1259,
+        243,
+        1850,
+        945
+      ],
+      "neckRoot": [
+        1510,
+        945
+      ],
+      "scale": 0.6,
+      "sha256": "81f2190df20b1e7924c062e46aa6415231bde3c0bcd65fa3845b52f796767210",
+      "useZh": "h2→h3 中间状态；17.35 s",
+      "nativeSourceSize": [
+        1188,
+        1324
+      ]
+    },
+    {
+      "file": "him_head-h3-closed.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-h3-closed.raw.png",
+      "bbox": [
+        1259,
+        245,
+        1842,
+        945
+      ],
+      "neckRoot": [
+        1510,
+        945
+      ],
+      "scale": 0.6,
+      "base": "him_head-h3.png",
+      "mask": "source/him_head-h3-closed.patch-mask.png",
+      "outsideMaskChangedPixels": 0,
+      "alphaChangedPixels": 0,
+      "changedPixels": 6561,
+      "patchBBox": [
+        1537,
+        625,
+        1764,
+        691
+      ],
+      "sha256": "eb3545321d4a580ed90088b625c4b5adc5a5bde9993859ac291646db8de656af",
+      "useZh": "对应姿势闭眼；眨眼用",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-h3.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-h3.raw.png",
+      "bbox": [
+        1259,
+        245,
+        1842,
+        945
+      ],
+      "neckRoot": [
+        1510,
+        945
+      ],
+      "scale": 0.6,
+      "sha256": "d5964309fdca9dcdeab21fb1af1b39ac75b964dfd107b069a4936410ce92ac27",
+      "useZh": "低头、半垂眼、抿嘴；17.9–19.0 s",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    }
+  ],
+  "preview": "/public/codex-assets/characters-phase1-v1/preview.html",
+  "validation": "validation.json",
+  "prompts": "prompts.json"
+}

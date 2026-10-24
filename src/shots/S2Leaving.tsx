@@ -8,6 +8,9 @@ import { E, track, lerp } from "../lib/anim";
 import { noise1 } from "../lib/random";
 import { FPS, SHOTS } from "../config/timeline";
 import { Cam } from "../lib/camera";
+import { ASSETS } from "../config/assets";
+import { CHAR_CANVAS, Cel, Keys, blinkSrc, keyAt } from "../chars/painted";
+import { SEED_MAN } from "../characters/life";
 
 /**
  * S2「手先松开」 帧 289–527（9.63–17.57 s）
@@ -122,10 +125,72 @@ export const s2Walk = (t: number) => {
   return { walking: t >= S2_T.turn[1], walkT, ...g, x: STOP.womanX + 6 + g.dist, groundY: STOP.seatY - 8 + 262 * STOP.figScale };
 };
 
+// ---------------- 水粉人物版（素材见 asset-requests/refs/chars/S2/） ----------------
+const S2_DIR = "chars/S2";
+/** 她的全身序列：每张从这个时刻起，保持到下一张（Codex manifest 的 timeSeconds） */
+const S2_HER: Keys = [
+  [0, "00"], [9.86, "01"], [10.1, "02"], [10.4, "03"], [10.8, "04"],
+  [13.15, "05"], [13.32, "06"], [13.5, "07"], [13.65, "08"], [13.8, "09"], [13.95, "10"], [14.1, "11"], [14.25, "12"], [14.4, "13"],
+  [14.55, "14"], [14.75, "15"], [14.95, "16"], [15.03, "17"], [15.12, "18"], [15.2, "19"],
+];
+/** 原地走循环从这个时刻开始（19 是转完身、侧身站定的那一张，停一拍再起步） */
+const S2_WALK_AT = 15.26;
+/** 走路循环：一张前进 68.83 px（3840 画布），12 张一周期 */
+const WALK_STEP_PX = 413 / 6;
+/** 3840 画布像素 → 世界坐标 */
+const S2_K = CHAR_CANVAS.S2.w / 3840;
+/** 起步 0.55 s 加速到 560/s（和代码人物的 s2Walk 一致），返回走过的距离（世界坐标） */
+const s2WalkDist = (u: number) => {
+  const v = 560;
+  const acc = 0.55;
+  return u <= 0 ? 0 : u < acc ? (v * u * u) / (2 * acc) : v * acc * 0.5 + v * (u - acc);
+};
+/** 他的头：看她 → 低头看手 → 抬头追看 → 落回空位 */
+const S2_HEAD: Keys = [
+  [0, "1"], [11.3, "1b"], [11.6, "2"], [15.1, "2b"], [15.45, "3"], [17.15, "4"],
+];
+/** 他的手：手指慢慢收拢（11.5–12.5），她走后稍微松开（15.1–15.7） */
+const S2_HAND: Keys = [
+  [0, "0"], [11.85, "1"], [12.3, "2"], [15.4, "1"],
+];
+const S2_NECK: [number, number] = [CHAR_CANVAS.S2.x + 1585 * S2_K, CHAR_CANVAS.S2.y + 825 * S2_K];
+
+const PaintedS2: React.FC<{ t: number }> = ({ t }) => {
+  const R = CHAR_CANVAS.S2;
+  let her: React.ReactNode;
+  if (t < S2_WALK_AT) {
+    const f = keyAt(S2_HER, t);
+    her = <Cel src={`${S2_DIR}/her/${f}.png`} rect={R} />;
+  } else {
+    // 一拍一拍地往前挪：位移按整张量化，着地的脚在世界里不动（不会打滑）
+    const steps = Math.floor(s2WalkDist(t - S2_WALK_AT) / S2_K / WALK_STEP_PX);
+    her = <Cel src={`${S2_DIR}/her/walk/${String(steps % 12).padStart(2, "0")}.png`} rect={R} dx={steps * WALK_STEP_PX * S2_K} />;
+  }
+  const head = keyAt(S2_HEAD, t);
+  const headSrc = ["1", "2", "4"].includes(head) ? blinkSrc(`${S2_DIR}/him_head-${head}.png`, `${S2_DIR}/him_head-${head}-closed.png`, t, SEED_MAN) : `${S2_DIR}/him_head-${head}.png`;
+  const breath = Math.sin(t * 1.9) * 0.5;
+  const sway = noise1(t * 0.5, 23) * 0.6;
+  return (
+    <g>
+      {her}
+      <Cel src={`${S2_DIR}/him_body.png`} rect={R} dy={breath} />
+      <Cel src={headSrc} rect={R} dy={breath} rot={sway} pivot={S2_NECK} />
+      <Cel src={`${S2_DIR}/him_hand-${keyAt(S2_HAND, t)}.png`} rect={R} dy={breath * 0.3} />
+    </g>
+  );
+};
+
 export const S2Leaving: React.FC = () => {
   const frame = useCurrentFrame();
   const t = (SHOTS.s2.from + frame) / FPS;
   const cam = s2Cam(t);
+  if (ASSETS.paintedS2) {
+    return (
+      <AbsoluteFill>
+        <BusStopWorld cam={cam} t={t} man={manPoseS2(t)} hideMan woman={null} extraFigures={<PaintedS2 t={t} />} />
+      </AbsoluteFill>
+    );
+  }
   const man = manPoseS2(t);
   const woman = womanPoseS2(t);
   // 正面站姿收窄到侧身宽度时，和侧身行走画法交叉淡化（侧身在下层先出现，正面在上层淡出）

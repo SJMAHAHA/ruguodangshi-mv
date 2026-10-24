@@ -15,6 +15,9 @@ import { TShapes } from "../../characters/front";
 import { PencilDefs } from "../../draw/Defs";
 import { SvgImage } from "../../env/Plate";
 import { PhoneHand } from "../../props/Hands";
+import { ASSETS } from "../../config/assets";
+import { CHAR_CANVAS, Cel, Keys, blinkSrc, keyAt } from "../../chars/painted";
+import { SEED_MAN, SEED_WOMAN } from "../../characters/life";
 
 /**
  * 第一幕「黄昏·冷淡」A1–A6（0:00–0:38.25）
@@ -113,6 +116,40 @@ export const A2: React.FC = () => {
   );
 };
 
+// ---------------- A3（水粉人物版，素材见 asset-requests/refs/chars/A3/） ----------------
+/** 他的头：转向她（14.0–15.0）、想开口（15.6–16.5）、低头（16.8–17.9）；中间张放在动作的中段 */
+const A3_HEAD: Keys = [
+  [0, "h1"],
+  [14.33, "h1b"],
+  [14.75, "h2"],
+  [15.6, "h2-open"],
+  [16.5, "h2"],
+  [17.15, "h2b"],
+  [17.6, "h3"],
+];
+const A3_DIR = "chars/A3";
+/** 画布 3840 坐标 → 世界坐标 */
+const a3W = (x: number, y: number): P => [CHAR_CANVAS.A3.x + (x / 3840) * CHAR_CANVAS.A3.w, CHAR_CANVAS.A3.y + (y / 2160) * CHAR_CANVAS.A3.h];
+const A3_NECK = a3W(1510, 945);
+
+const PaintedA3: React.FC<{ t: number; inhale: number }> = ({ t, inhale }) => {
+  const head = keyAt(A3_HEAD, t);
+  // 只有三个主要姿势有闭眼图；中间张和张嘴时不眨眼
+  const headSrc = ["h1", "h2", "h3"].includes(head) ? blinkSrc(`${A3_DIR}/him_head-${head}.png`, `${A3_DIR}/him_head-${head}-closed.png`, t, SEED_MAN) : `${A3_DIR}/him_head-${head}.png`;
+  // 吸气时肩膀和头一起微微抬起；头在脖根上有很小的自然晃动
+  const lift = -inhale * 2.2 + Math.sin(t * 1.7) * 0.4;
+  const sway = noise1(t * 0.45, 17) * 0.7;
+  const herBreath = Math.sin(t * 2.1 + 1) * 0.35;
+  const R = CHAR_CANVAS.A3;
+  return (
+    <g>
+      <Cel src={blinkSrc(`${A3_DIR}/her.png`, `${A3_DIR}/her_eyes-closed.png`, t, SEED_WOMAN)} rect={R} dy={herBreath} />
+      <Cel src={`${A3_DIR}/him_body.png`} rect={R} dy={lift} />
+      <Cel src={headSrc} rect={R} dy={lift} rot={sway} pivot={A3_NECK} />
+    </g>
+  );
+};
+
 // ---------------- A3 他的近景：想开口，又停住 ----------------
 export const A3: React.FC = () => {
   const t = useSongT("A3");
@@ -120,6 +157,13 @@ export const A3: React.FC = () => {
   const turn = track(t, [[14.0, 0], [15.0, 1, E.inOut], [16.8, 1], [17.8, 0.2, E.inOut]]);
   const down = track(t, [[16.8, 0], [17.9, 1, E.inOut]]);
   const cam: Cam = { x: 905 + track(t, [[13.05, 0], [19, 10, E.drift]]), y: 330, scale: track(t, [[13.05, 2.0], [19, 2.06, E.drift]]) };
+  if (ASSETS.paintedA3) {
+    return (
+      <AbsoluteFill>
+        <BusStopWorld cam={cam} t={t} tod="dusk" rain={0} glassDrops={0} man={manWaiting(t)} hideMan woman={null} bouquet={null} extraFigures={<PaintedA3 t={t} inhale={inhale} />} />
+      </AbsoluteFill>
+    );
+  }
   return (
     <AbsoluteFill>
       <BusStopWorld

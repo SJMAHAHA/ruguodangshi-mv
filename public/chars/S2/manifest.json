@@ -1,0 +1,1372 @@
+{
+  "version": 1,
+  "batch": 5,
+  "phase": 1,
+  "shot": "S2",
+  "status": "delivered-for-shot-review",
+  "canvas": [
+    3840,
+    2160
+  ],
+  "format": "RGBA PNG",
+  "count": 45,
+  "generator": "built-in image_gen",
+  "artworkOrigin": "separate AI-generated poses using approved phase-0 character references",
+  "processing": "alpha cleanup, premultiplied resize, scene anchor registration, local eye/mouth patches, collar occlusion, separate painted-leg registration; original sources preserved",
+  "nativeResolutionNote": "AI source files are approximately 1.57 MP, varying portrait/square sizes; 3840×2160 is the registered delivery canvas, not native 4K synthesis.",
+  "compositeOrder": [
+    "her",
+    "him_body",
+    "him_head state",
+    "him_hand state"
+  ],
+  "assets": [
+    {
+      "file": "her/00.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_00-contact.raw.png",
+      "bbox": [
+        1784,
+        445,
+        2461,
+        2083
+      ],
+      "timeSeconds": 9.63,
+      "headCenter": [
+        2140,
+        600
+      ],
+      "hipY": 1530,
+      "soleY": 2080,
+      "contactAdjustment": "lower left forearm shifted locally toward shared seat hand; head/hips/feet fixed",
+      "sha256": "bdb29430a8f59e34a82b1360ec46a6d6575f52e3cadbdde2f77c34d74c37c07b",
+      "useZh": "起始手部接触",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/01.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_01.raw.png",
+      "bbox": [
+        1875,
+        440,
+        2462,
+        2083
+      ],
+      "timeSeconds": 9.86,
+      "headCenter": [
+        2140,
+        600
+      ],
+      "hipY": 1530,
+      "soleY": 2080,
+      "sha256": "61b0e7b479032a74674e7a0d22f8daf35fa2c9102411df1c17a14b06ed3210a0",
+      "useZh": "抽手",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/02.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_02.raw.png",
+      "bbox": [
+        1853,
+        441,
+        2459,
+        2083
+      ],
+      "timeSeconds": 10.1,
+      "headCenter": [
+        2140,
+        600
+      ],
+      "hipY": 1530,
+      "soleY": 2080,
+      "sha256": "3c90a13519fbc7fec06b2a6465d583d7ffffd8f5710ba0448baa993480f259e6",
+      "useZh": "抽手",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/03.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_03-fix.raw.png",
+      "bbox": [
+        1859,
+        439,
+        2467,
+        2083
+      ],
+      "timeSeconds": 10.4,
+      "headCenter": [
+        2140,
+        600
+      ],
+      "hipY": 1530,
+      "soleY": 2080,
+      "sha256": "b639c84af51d947eb0d2ccc0684667b89994d23471405f0c0a6a5b3f2aa754ee",
+      "useZh": "抽手",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/04.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_04.raw.png",
+      "bbox": [
+        1862,
+        440,
+        2463,
+        2083
+      ],
+      "timeSeconds": 10.8,
+      "headCenter": [
+        2140,
+        600
+      ],
+      "hipY": 1530,
+      "soleY": 2080,
+      "sha256": "ea5cae593c7268dc7295ed1a5f0dbe72f368af98e3b34cd6d327c32fa2378e05",
+      "useZh": "抽手",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/05.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_05.raw.png",
+      "bbox": [
+        1797,
+        419,
+        2483,
+        2083
+      ],
+      "timeSeconds": 13.15,
+      "headCenter": [
+        2140,
+        630
+      ],
+      "hipY": 1530,
+      "soleY": 2080,
+      "sha256": "1d7666a797a7f06e107e36235b44edaa203ec07abdba661507ddf5e676a82af4",
+      "useZh": "前倾",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/06.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_06.raw.png",
+      "bbox": [
+        1797,
+        526,
+        2472,
+        2083
+      ],
+      "timeSeconds": 13.32,
+      "headCenter": [
+        2140,
+        690
+      ],
+      "hipY": 1530,
+      "soleY": 2080,
+      "sha256": "cb1cdf6ee3380077dc819d6f6dcca375bb9b70aef64e51baa1feb12e244d3391",
+      "useZh": "前倾",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/07.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_07.raw.png",
+      "bbox": [
+        1776,
+        594,
+        2434,
+        2083
+      ],
+      "timeSeconds": 13.5,
+      "headCenter": [
+        2140,
+        760
+      ],
+      "hipY": 1530,
+      "soleY": 2080,
+      "sha256": "6606f9ec35b8b20c434d06f263c666cd5f084efe37a8e591ae95b374487b1c72",
+      "useZh": "前倾",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/08.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_08.raw.png",
+      "bbox": [
+        1766,
+        555,
+        2444,
+        2083
+      ],
+      "timeSeconds": 13.65,
+      "headCenter": [
+        2140,
+        720
+      ],
+      "hipY": 1490,
+      "soleY": 2080,
+      "sha256": "a37a5385b873c8d334efc407f288dee0b298bcebe38ce8a74fb89dc6e8825603",
+      "useZh": "起身",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/09.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_09.raw.png",
+      "bbox": [
+        1795,
+        447,
+        2434,
+        2083
+      ],
+      "timeSeconds": 13.8,
+      "headCenter": [
+        2140,
+        620
+      ],
+      "hipY": 1420,
+      "soleY": 2080,
+      "sha256": "8c73565d786e54d584fa76f73ecf7517afb92daa8c0ae59f284fb3fff3c21ed6",
+      "useZh": "起身",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/10.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_10.raw.png",
+      "bbox": [
+        1764,
+        296,
+        2474,
+        2083
+      ],
+      "timeSeconds": 13.95,
+      "headCenter": [
+        2140,
+        500
+      ],
+      "hipY": 1340,
+      "soleY": 2080,
+      "sha256": "6b1cd06d581d6bd7cff772c71c9be9c927167405cce8d4ac4b7f6cc67be8c750",
+      "useZh": "起身",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/11.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_11.raw.png",
+      "bbox": [
+        1810,
+        194,
+        2399,
+        2083
+      ],
+      "timeSeconds": 14.1,
+      "headCenter": [
+        2140,
+        380
+      ],
+      "hipY": 1270,
+      "soleY": 2080,
+      "sha256": "899b52da4b22eeca101ca9fd6708e57c43f7c5ffb3f5f3b5e1dbcf2683c6ccf7",
+      "useZh": "起身",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/12.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_12.raw.png",
+      "bbox": [
+        1813,
+        121,
+        2381,
+        2083
+      ],
+      "timeSeconds": 14.25,
+      "headCenter": [
+        2140,
+        270
+      ],
+      "hipY": 1205,
+      "soleY": 2080,
+      "sha256": "b4499f356dbf2138279b86231378d33744acfe5f6af6c9fd51089729001f6167",
+      "useZh": "起身",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/13.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_13.raw.png",
+      "bbox": [
+        1839,
+        44,
+        2434,
+        2083
+      ],
+      "timeSeconds": 14.4,
+      "headCenter": [
+        2140,
+        200
+      ],
+      "hipY": 1140,
+      "soleY": 2080,
+      "sha256": "eb230f07f38a4a29cf514eaacd7406a7a94253a2189d3b93a9e3b0afa503f058",
+      "useZh": "起身",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/14.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_14.raw.png",
+      "bbox": [
+        1761,
+        47,
+        2465,
+        2083
+      ],
+      "timeSeconds": 14.55,
+      "headCenter": [
+        2140,
+        200
+      ],
+      "hipY": 1140,
+      "soleY": 2080,
+      "sha256": "27b3ebb29ec63eaf3881a6b6ffcd260de8b09f7b9ba398c084c7d702df4cf63e",
+      "useZh": "犹豫",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/15.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_15.raw.png",
+      "bbox": [
+        1708,
+        44,
+        2447,
+        2083
+      ],
+      "timeSeconds": 14.75,
+      "headCenter": [
+        2140,
+        200
+      ],
+      "hipY": 1140,
+      "soleY": 2080,
+      "sha256": "532f4e76fe7370b7ac8aa6408f105db554777396046f54b3530d077f8e0b679a",
+      "useZh": "犹豫",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/16.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_16.raw.png",
+      "bbox": [
+        1838,
+        49,
+        2435,
+        2083
+      ],
+      "timeSeconds": 14.95,
+      "headCenter": [
+        2140,
+        200
+      ],
+      "hipY": 1140,
+      "soleY": 2080,
+      "sha256": "c95f178dab0cf23eb961b9e77df64b5398bc982b4c8145e84f53b32d122f2a07",
+      "useZh": "犹豫",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/17.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_17.raw.png",
+      "bbox": [
+        1863,
+        43,
+        2375,
+        2082
+      ],
+      "timeSeconds": 15.03,
+      "headCenter": [
+        2140,
+        200
+      ],
+      "hipY": 1140,
+      "soleY": 2080,
+      "sha256": "cd6f6ca68d994613f13694b0bf53fef0b8f6fd9a0a30b661460dba0a359c7604",
+      "useZh": "转身",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/18.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_18.raw.png",
+      "bbox": [
+        1865,
+        52,
+        2358,
+        2081
+      ],
+      "timeSeconds": 15.12,
+      "headCenter": [
+        2140,
+        200
+      ],
+      "hipY": 1140,
+      "soleY": 2080,
+      "sha256": "70b049672f3118a65dd38eaa96eb6d6fcb6a431dc5394535b2085d09d797cdcf",
+      "useZh": "转身",
+      "nativeSourceSize": [
+        870,
+        1807
+      ]
+    },
+    {
+      "file": "her/19.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_19.raw.png",
+      "bbox": [
+        1907,
+        44,
+        2306,
+        2081
+      ],
+      "timeSeconds": 15.2,
+      "headCenter": [
+        2140,
+        200
+      ],
+      "hipY": 1140,
+      "soleY": 2080,
+      "sha256": "37d5de2b58d80c187e23ca3c687536e0f6df49e1885b85ca465726b102f3fb6b",
+      "useZh": "转身",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/walk/00.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_00.raw.png",
+      "bbox": [
+        1718,
+        61,
+        2481,
+        2081
+      ],
+      "cycleFrame": 0,
+      "plantedFoot": "right",
+      "plantedFootX": 2346.5,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1710,
+      "sourceShoeCenters": [
+        150,
+        750
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "033582338644c4a14314dd306d4d039397f760646e10943a696a8e0e02457553",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/walk/01.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_01.raw.png",
+      "bbox": [
+        1738,
+        61,
+        2475,
+        2081
+      ],
+      "cycleFrame": 1,
+      "plantedFoot": "right",
+      "plantedFootX": 2277.6667,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1734,
+      "sourceShoeCenters": [
+        150,
+        720
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "6e2c5c658779d8acdcf9cfaa00264cbd67dc4e64740c44f2284c5a0fbdd2990e",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/walk/02.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_02.raw.png",
+      "bbox": [
+        1772,
+        71,
+        2378,
+        2082
+      ],
+      "cycleFrame": 2,
+      "plantedFoot": "right",
+      "plantedFootX": 2208.8333,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1730,
+      "sourceShoeCenters": [
+        140,
+        670
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "a5c15b66e389a276f1f0e1dab987ac7f766a55ddb2875ce1dd9a135faf123439",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/walk/03.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_03-pass.raw.png",
+      "bbox": [
+        1913,
+        43,
+        2358,
+        2081
+      ],
+      "cycleFrame": 3,
+      "plantedFoot": "right",
+      "plantedFootX": 2140.0,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1729,
+      "sourceShoeCenters": [
+        300,
+        540
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "6e03c1f23ffdd45e9878b618c5522da93da810fce0a77ff3eb45adb4cc981e9e",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        944,
+        1666
+      ]
+    },
+    {
+      "file": "her/walk/04.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_04.raw.png",
+      "bbox": [
+        1677,
+        46,
+        2430,
+        2081
+      ],
+      "cycleFrame": 4,
+      "plantedFoot": "right",
+      "plantedFootX": 2071.1667,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1732,
+      "sourceShoeCenters": [
+        250,
+        750
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "706b7a5e94758a40a4525d3905a248cc4a466e27e70d7328b5b43b5299c74b0b",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/walk/05.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_05.raw.png",
+      "bbox": [
+        1720,
+        44,
+        2477,
+        2081
+      ],
+      "cycleFrame": 5,
+      "plantedFoot": "right",
+      "plantedFootX": 2002.3333,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1758,
+      "sourceShoeCenters": [
+        140,
+        750
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "97428247b8e3061657456633fbdfa371ca21a05c9a92c561071c00115398fd8c",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/walk/06.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_06.raw.png",
+      "bbox": [
+        1734,
+        59,
+        2501,
+        2081
+      ],
+      "cycleFrame": 6,
+      "plantedFoot": "left",
+      "plantedFootX": 2346.5,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1732,
+      "sourceShoeCenters": [
+        130,
+        750
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "142bdb6bbf5d06289674a6e9d2bde69b33c86fa6f6054fe148fbdd74d7153151",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/walk/07.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_07.raw.png",
+      "bbox": [
+        1724,
+        60,
+        2501,
+        2081
+      ],
+      "cycleFrame": 7,
+      "plantedFoot": "left",
+      "plantedFootX": 2277.6667,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1741,
+      "sourceShoeCenters": [
+        150,
+        720
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "4ce78e5af3b1cb56e1ad2ca5a26d1402b4061a713e3fd6f5b94884d888db19e2",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/walk/08.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_08.raw.png",
+      "bbox": [
+        1727,
+        68,
+        2425,
+        2081
+      ],
+      "cycleFrame": 8,
+      "plantedFoot": "left",
+      "plantedFootX": 2208.8333,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1746,
+      "sourceShoeCenters": [
+        180,
+        630
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "7707eee258223597d9b5874eb2c1a2ad996b62290a9ae58aef636098e48325ec",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/walk/09.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_09-pass.raw.png",
+      "bbox": [
+        1853,
+        43,
+        2274,
+        2082
+      ],
+      "cycleFrame": 9,
+      "plantedFoot": "left",
+      "plantedFootX": 2140.0,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1754,
+      "sourceShoeCenters": [
+        300,
+        540
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "c46682e1b9286f7fd0225a9f0aa3f76d3ac6d55591ba6952d9b27cdaf5de70c8",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        944,
+        1666
+      ]
+    },
+    {
+      "file": "her/walk/10.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_10.raw.png",
+      "bbox": [
+        1657,
+        55,
+        2432,
+        2081
+      ],
+      "cycleFrame": 10,
+      "plantedFoot": "left",
+      "plantedFootX": 2071.1667,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1743,
+      "sourceShoeCenters": [
+        230,
+        750
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "91bc0adf1d9f3895f6c7d5141e151993969a8830d3949b424d5365e20aa4bedc",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "her/walk/11.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "her_walk_11.raw.png",
+      "bbox": [
+        1699,
+        44,
+        2481,
+        2081
+      ],
+      "cycleFrame": 11,
+      "plantedFoot": "left",
+      "plantedFootX": 2002.3333,
+      "plantedFootY": 2080,
+      "soleY": 2080,
+      "sourceSoleY": 1754,
+      "sourceShoeCenters": [
+        170,
+        750
+      ],
+      "calibration": "separate geometric registration of existing painted legs; boots keep their shape, upper-body x fixed",
+      "sha256": "5c00f211a4a0fed1b8c5e6011b8bb9518a7d012a440457c2aad0bb646a19982d",
+      "useZh": "侧身朝右原地走路循环",
+      "nativeSourceSize": [
+        870,
+        1808
+      ]
+    },
+    {
+      "file": "him_body.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_body-sides.raw.png",
+      "bbox": [
+        1257,
+        759,
+        1947,
+        2081
+      ],
+      "hipY": 1530,
+      "soleY": 2080,
+      "cuff": [
+        1831,
+        1470
+      ],
+      "neckRoot": [
+        1600,
+        825
+      ],
+      "sha256": "140dc4f077d5f209eee02bb80c224430a850613c88e878f2ee92e75c5a3bed37",
+      "useZh": "坐姿身体；无头、无画面右手",
+      "nativeSourceSize": [
+        789,
+        1994
+      ]
+    },
+    {
+      "file": "him_hand-0.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_hand-0.raw.png",
+      "bbox": [
+        1813,
+        1454,
+        1981,
+        1546
+      ],
+      "wrist": [
+        1831,
+        1465
+      ],
+      "rotationDegClockwise": 0,
+      "scaleXY": [
+        0.18,
+        0.105
+      ],
+      "sha256": "00dc78df6fed669c363a9d0f9fa1c58f472bffa28c53bfb07cdcd618ea094eeb",
+      "useZh": "画面右手平放；9.63–11.5 s",
+      "nativeSourceSize": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "file": "him_hand-1.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_hand-1.raw.png",
+      "bbox": [
+        1815,
+        1455,
+        1969,
+        1551
+      ],
+      "wrist": [
+        1831,
+        1465
+      ],
+      "rotationDegClockwise": 0,
+      "scaleXY": [
+        0.18,
+        0.105
+      ],
+      "sha256": "50a6177760d81aad8fbf75e2f27f877acf3cd4ccb8f3935cfece9489622d1727",
+      "useZh": "手指初收拢；11.9 s，15.7 s 起",
+      "nativeSourceSize": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "file": "him_hand-2.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_hand-2.raw.png",
+      "bbox": [
+        1807,
+        1457,
+        1954,
+        1537
+      ],
+      "wrist": [
+        1831,
+        1465
+      ],
+      "rotationDegClockwise": 0,
+      "scaleXY": [
+        0.18,
+        0.105
+      ],
+      "sha256": "c9a00ea76afe113c791b1e579f23483e837866b7ac38a0edb1841ffe039fd9e9",
+      "useZh": "半握；12.5–15.1 s",
+      "nativeSourceSize": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "file": "him_head-1-closed.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-1-closed.raw.png",
+      "bbox": [
+        1417,
+        416,
+        1749,
+        824
+      ],
+      "neckRoot": [
+        1585,
+        825
+      ],
+      "scale": 0.35,
+      "base": "him_head-1.png",
+      "mask": "source/him_head-1-closed.patch-mask.png",
+      "outsideMaskChangedPixels": 0,
+      "alphaChangedPixels": 0,
+      "changedPixels": 2706,
+      "patchBBox": [
+        1595,
+        593,
+        1730,
+        642
+      ],
+      "sha256": "88f944866d2eb0b59797c427d7817707883ebdf8b59bbad8ae3e8782ca4854c4",
+      "useZh": "对应姿势闭眼；眨眼用",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-1.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-1-dry.raw.png",
+      "bbox": [
+        1417,
+        416,
+        1749,
+        824
+      ],
+      "neckRoot": [
+        1585,
+        825
+      ],
+      "scale": 0.35,
+      "sha256": "f911a54a7ec129208ed04fc57a6888922999f32c9993a27616c0e88f83b56885",
+      "useZh": "看着她；9.63–11.05 s",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-1b.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-1b.raw.png",
+      "bbox": [
+        1439,
+        406,
+        1790,
+        824
+      ],
+      "neckRoot": [
+        1585,
+        825
+      ],
+      "scale": 0.35,
+      "sha256": "ae40fd93d1e4d570a576ecca73f6ae34b65ff62424b289b48441606994a8d6ba",
+      "useZh": "1→2 中间状态；11.45 s",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-2-closed.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-2-closed.raw.png",
+      "bbox": [
+        1438,
+        414,
+        1784,
+        824
+      ],
+      "neckRoot": [
+        1585,
+        825
+      ],
+      "scale": 0.35,
+      "base": "him_head-2.png",
+      "mask": "source/him_head-2-closed.patch-mask.png",
+      "outsideMaskChangedPixels": 0,
+      "alphaChangedPixels": 0,
+      "changedPixels": 2313,
+      "patchBBox": [
+        1619,
+        642,
+        1747,
+        684
+      ],
+      "sha256": "bcc85722f1c887a2fb94de9d9cbe9e3b14be7219af0efa65f03df6b8ebfa4fef",
+      "useZh": "对应姿势闭眼；眨眼用",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-2.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-2.raw.png",
+      "bbox": [
+        1438,
+        414,
+        1784,
+        824
+      ],
+      "neckRoot": [
+        1585,
+        825
+      ],
+      "scale": 0.35,
+      "sha256": "c95537585720cc9a6dd35eeefc2f78d53c8fb24efa71c6788827abb0e2d8ff95",
+      "useZh": "低头看手；11.85–14.75 s",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-2b.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-2b.raw.png",
+      "bbox": [
+        1393,
+        404,
+        1744,
+        825
+      ],
+      "neckRoot": [
+        1585,
+        825
+      ],
+      "scale": 0.35,
+      "sha256": "7a696092ed790aff5342d9de39670b126b7d27db4f8e281b6a0cc91ef1bf147b",
+      "useZh": "2→3 中间状态；15.3 s",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-3.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-3.raw.png",
+      "bbox": [
+        1384,
+        410,
+        1732,
+        824
+      ],
+      "neckRoot": [
+        1585,
+        825
+      ],
+      "scale": 0.35,
+      "sha256": "389d310481b302dd67aeae76504d5f0b7319a85e54d7bdce6d07d85464cd075e",
+      "useZh": "抬头向右上追看；15.85–16.85 s",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-4-closed.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-4-closed.raw.png",
+      "bbox": [
+        1436,
+        411,
+        1791,
+        824
+      ],
+      "neckRoot": [
+        1585,
+        825
+      ],
+      "scale": 0.35,
+      "base": "him_head-4.png",
+      "mask": "source/him_head-4-closed.patch-mask.png",
+      "outsideMaskChangedPixels": 0,
+      "alphaChangedPixels": 0,
+      "changedPixels": 2447,
+      "patchBBox": [
+        1614,
+        642,
+        1745,
+        688
+      ],
+      "sha256": "c070fcc6eb96ae636be182bb3b04098ea82813d22f0abb82a55fdee1cd5b95f8",
+      "useZh": "对应姿势闭眼；眨眼用",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    },
+    {
+      "file": "him_head-4.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "source": "him_head-4.raw.png",
+      "bbox": [
+        1436,
+        411,
+        1791,
+        824
+      ],
+      "neckRoot": [
+        1585,
+        825
+      ],
+      "scale": 0.35,
+      "sha256": "ea2e74459b84696b4d35e40aea6b509cb644629fbe7f549b2246613dfacf6db3",
+      "useZh": "看向空位、失落；17.5 s 起",
+      "nativeSourceSize": [
+        1189,
+        1323
+      ]
+    }
+  ],
+  "preview": "/public/codex-assets/characters-phase1-v1/preview.html",
+  "validation": "validation.json",
+  "prompts": "prompts.json",
+  "walk": {
+    "frames": 12,
+    "inPlace": true,
+    "stepPx": 413,
+    "stepsPerCycle": 2,
+    "frameTravelPx": 68.83333333333333,
+    "suggestedPreviewFPS": 12,
+    "worldTranslation": "frameTravelPx × elapsedCycleFrames; cumulative, not reset each cycle",
+    "contactConvention": "plantedFootX is a registered reference point inside the sole; listed opaque sole Y is measured nearby.",
+    "reviewNote": "Independently painted frames can retain small hair/coat and limb-shape fluctuations. Review at final camera scale before adopting the walk in the finished MV."
+  }
+}
