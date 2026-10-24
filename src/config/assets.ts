@@ -16,4 +16,7 @@ export const ASSETS = {
   floorDusk: true,
   /** D1 旧街长卷分两段重画（d1_strip-a.jpg、d1_strip-b.jpg），比一整张更清晰 */
   d1Tiles: true,
+  /** 水粉人物（第五批，public/chars/<镜头>/）：按镜头逐个打开，关着的镜头仍用代码人物 */
+  paintedA3: false,
+  paintedS2: false,
 } as const;
