@@ -1,0 +1,16 @@
+{
+  "id": "memory_photo_alone",
+  "model": "doubao-seedream-5-0-pro",
+  "size_requested": "1552x2960",
+  "size_returned": "1552x2960",
+  "fit": [
+    880,
+    1680
+  ],
+  "refs": [
+    "public/plates/memory_photo.jpg"
+  ],
+  "prompt": "参考图是一张两个人坐在长椅上的合影。请输出同一张照片，只做一处改变：右边的女生不在了，长椅的右半边空着，露出她身后的长椅木条和白墙。男生的位置、姿势、表情，以及光线、背景、构图、色调、画风全部保持完全不变。不要文字、水印。",
+  "created": "2026-10-22T05:09:24.151Z",
+  "seconds": 82
+}

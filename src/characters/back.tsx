@@ -2,6 +2,7 @@ import { P, smoothClosed, smoothOpen, limb, rot } from "../lib/geom";
 import { Shape, L } from "../draw/Shape";
 import { Design } from "./front";
 import { ellipse } from "./head";
+import { HEAD_K } from "./front";
 
 /**
  * 背面坐姿（S4 远景、S5 背面中景）。局部坐标与正面一致：原点 = 臀部中心在座面上。
@@ -13,7 +14,7 @@ export const backShapes = (pose: BackPose, d: Design): Shape[] => {
   const f = d.sex === "f";
   const out: Shape[] = [];
   const tip = f ? 88 : 104;
-  const shY = (f ? -290 : -306) + pose.slump * 14;
+  const shY = (f ? -330 : -336) + pose.slump * 14;
   const waist = f ? 66 : 94;
   const hip = f ? 96 : 106;
   const c: P = [0, -20];
@@ -21,7 +22,7 @@ export const backShapes = (pose: BackPose, d: Design): Shape[] => {
   // 手臂（自然下垂，手放在腿上，背面只看到袖子外侧）
   for (const s of [-1, 1] as const) {
     const J = U([s * (tip - 14), shY + 18]);
-    const E2: P = U([s * (tip + 4), shY + 150]);
+    const E2: P = U([s * (tip + 4), shY + (f ? 162 : 176)]);
     const W: P = U([s * (tip - 18), -40]);
     out.push({ d: limb(J, E2, f ? 44 : 54, f ? 38 : 46, 2), fill: d.coatShade, line: d.line });
     out.push({ d: limb(E2, W, f ? 36 : 44, f ? 30 : 38, 1), fill: d.coatShade, line: d.line });
@@ -41,10 +42,10 @@ export const backShapes = (pose: BackPose, d: Design): Shape[] => {
   out.push({ d: smoothClosed([U([-30, shY - 36]), U([30, shY - 36]), U([34, shY - 10]), U([0, shY]), U([-34, shY - 10])], 0.6), fill: d.coatLit, line: d.line });
   if (f) out.push({ d: smoothClosed([U([-waist - 2, -150]), U([waist + 2, -150]), U([waist + 3, -130]), U([-waist - 3, -130])], 0.3), fill: d.coatShade, line: d.line });
   // 头（后脑勺 + 头发）
-  const hy = (f ? -398 : -424) + pose.slump * 16;
+  const hy = (f ? -438 : -454) + pose.slump * 16;
   const ht = pose.headTurn;
   const H = U([(pose.headOffset?.[0] ?? 0) + 0, hy + (pose.headOffset?.[1] ?? 0)]);
-  const tf = `translate(${H[0].toFixed(2)},${H[1].toFixed(2)}) rotate(${(pose.headTilt + pose.lean).toFixed(2)})`;
+  const tf = `translate(${H[0].toFixed(2)},${H[1].toFixed(2)}) rotate(${(pose.headTilt + pose.lean).toFixed(2)}) scale(${HEAD_K})`;
   const head: Shape[] = [];
   // 脖子
   head.push({ d: smoothClosed([[-15, 30], [15, 30], [18, 80], [-18, 80]], 0.5), fill: d.look.skinShade, line: d.line });

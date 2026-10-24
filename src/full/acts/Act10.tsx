@@ -1,12 +1,13 @@
 import React, { useCallback } from "react";
 import { AbsoluteFill } from "remotion";
 import { BusStopWorld, STOP } from "../../env/BusStop";
-import { WalkFigure } from "../../characters/walk";
+import { WalkFigure, gait } from "../../characters/walk";
 import { MAN } from "../../characters/designs";
 import { E, track, lerp, clamp } from "../../lib/anim";
 import { noise1 } from "../../lib/random";
 import { Cam } from "../../lib/camera";
 import { useSongT } from "../useSongT";
+import { riseHand, HANG } from "../../characters/front";
 import { FxCanvas } from "../../fx/FxCanvas";
 import { BOUQUET_HIS, manAlone } from "./Act7";
 import { drawMemoryHer, herMemPose } from "./Act8";
@@ -42,7 +43,7 @@ const DawnLight: React.FC<{ k: number }> = ({ k }) => (
 // ---------------- J1 ----------------
 export const J1: React.FC = () => {
   const t = useSongT("J1");
-  const cam: Cam = { x: 975, y: 560, scale: track(t, [[269.68, 1.1], [275.95, 1.16, E.drift]]) };
+  const cam: Cam = { x: 975, y: 525, scale: track(t, [[269.68, 1.1], [275.95, 1.16, E.drift]]) };
   const lamp = track(t, [[271.5, 1], [271.62, 0.3], [271.72, 0.8], [271.86, 0.15], [272.3, 0, E.out]]);
   const sun = track(t, [[269.68, 0.3], [275.95, 1, E.inOut]]);
   const up = track(t, [[272.4, 0], [273.6, 1, E.inOut]]);
@@ -66,7 +67,7 @@ export const J1: React.FC = () => {
 // ---------------- J2 ----------------
 export const J2: React.FC = () => {
   const t = useSongT("J2");
-  const cam: Cam = { x: track(t, [[275.95, 975], [282.2, 960, E.drift]]), y: 540, scale: track(t, [[275.95, 1.22], [282.2, 1.3, E.drift]]) };
+  const cam: Cam = { x: track(t, [[275.95, 975], [282.2, 960, E.drift]]), y: 505, scale: track(t, [[275.95, 1.22], [282.2, 1.3, E.drift]]) };
   const appear = track(t, [[276.1, 0], [277.3, 1, E.inOut]]);
   const align = track(t, [[276.6, 0], [279.2, 1, E.inOut]]);
   const look = track(t, [[277.2, 0], [278.3, 1, E.inOut]]);
@@ -98,8 +99,10 @@ export const J3: React.FC = () => {
   const place = track(t, [[282.5, 0], [284.2, 1, E.inOut]]);
   const release = track(t, [[284.3, 0], [284.9, 1, E.inOut]]);
   const fade = track(t, [[283.9, 0], [285.3, 1, E.inOut]]);
-  const stand = track(t, [[285.6, 0], [287.2, 1, E.inOut]]);
-  const cam: Cam = { x: 965, y: lerp(540, 340, track(t, [[285.6, 0], [287.4, 1, E.inOut]])), scale: lerp(1.3, 1.08, track(t, [[285.4, 0], [287.4, 1, E.inOut]])) };
+  // 起身：先前倾、双手撑在大腿上，再站起来，上身最后挺直
+  const bend = track(t, [[285.2, 0], [285.75, 0.9, E.inOut], [286.2, 1, E.inOut], [287.25, 0, E.out]]);
+  const stand = track(t, [[285.65, 0], [287.2, 1, E.inOut]]);
+  const cam: Cam = { x: 965, y: lerp(505, 330, track(t, [[285.6, 0], [287.4, 1, E.inOut]])), scale: lerp(1.3, 1.08, track(t, [[285.4, 0], [287.4, 1, E.inOut]])) };
   // 花束：从腿上抬起 → 弧线 → 落在她的座位上
   const arc = Math.sin(place * Math.PI) * 46;
   const bq = {
@@ -129,8 +132,13 @@ export const J3: React.FC = () => {
       bodyTurn: 0.12 + reach * 0.22 - stand * 0.1,
       slump: lerp(0.4, 0.2, stand),
       stand,
-      handR: { at: stand > 0 ? [lerp(hand[0], 92, stand), lerp(hand[1], -252, stand * stand)] : hand, fore: lerp(0.9, 0.6, release), angle: lerp(-30, -18, release), curl: lerp(0.7, 0.3, release) },
-      handL: { at: [lerp(-74, -92, stand), lerp(-34, -250, stand * stand)], fore: 0.6, angle: 30 },
+      bend,
+      handR: bend > 0 ? { ...riseHand({ stand, bend, slump: 0.4, shoulderLift: 0, legSlant: 0 }, MAN, 1, hand), angle: -18 } : { at: hand, fore: lerp(0.9, 0.6, release), angle: lerp(-30, -18, release), curl: lerp(0.7, 0.3, release) },
+      // 画面左手：接 J2 结尾握着花茎（curl 0.85），另一只手把花束拿走时慢慢松开
+      handL: (() => {
+        const rh = riseHand({ stand, bend, slump: 0.4, shoulderLift: 0, legSlant: 0 }, MAN, -1, [-74, -34]);
+        return { ...rh, angle: 30, curl: lerp(0.85, rh.curl, clamp(place * 2.5)) };
+      })(),
     }
   );
   const layer = { dx: fade * 60, dy: -fade * 40, rot: fade * 4, alpha: 1 - fade, tint: DAWN_TINT };
@@ -150,18 +158,22 @@ export const J4: React.FC = () => {
   const t = useSongT("J4");
   const cam: Cam = { x: track(t, [[288.2, 970], [294.95, 1010, E.drift]]), y: 450 + track(t, [[291.8, 0], [294.95, 100, E.inOut]]), scale: track(t, [[288.2, 0.88], [291.8, 0.88], [294.95, 1.02, E.inOut]]) };
   const turnU = track(t, [[288.5, 0], [289.1, 1, E.in]]);
-  const walking = t >= 289.1;
   const walkT = Math.max(0, t - 289.1);
-  const v = 330;
+  // 慢慢起步，稳定在每秒约 1.5 步
+  const v = 380;
   const acc = 0.7;
-  const dist = walkT < acc ? (0.5 * v * walkT * walkT) / acc : 0.5 * v * acc + v * (walkT - acc);
-  const phase = (dist / 300) * Math.PI;
+  const g = gait(walkT, (u) => (u < acc ? (v * u) / acc : v), (u) => clamp(0.3 + u * 1.2, 0, 1), MAN, K * WALK_FIT);
+  const dist = g.dist;
   const groundY = SEAT_Y + 262 * K;
   const man = manAlone(
     t,
     { turn: lerp(0.22, 0.6, turnU), pitch: 0.1, eyeOpen: 0.7, gaze: 0.5, brow: 0.2, mouth: 0 },
-    { stand: 1, slump: 0.2, bodyTurn: lerp(0.02, 1, turnU), handR: { at: [92, -252], fore: 0.6 }, handL: { at: [-92, -250], fore: 0.6, angle: 30 } }
+    // 手的位置接上 J3 结尾（起身后自然下垂）
+    { stand: 1, bend: 0, slump: 0.2, bodyTurn: lerp(0.02, 1, turnU), handR: { at: HANG(MAN, 1), fore: 1 }, handL: { at: HANG(MAN, -1), fore: 1, angle: 30 } }
   );
+  // 转身：正面画法收窄后，在上层淡出，下层的侧身画法接上
+  const frontOp = track(t, [[289.0, 1], [289.17, 0, E.inOut]]);
+  const showWalker = t >= 289.0;
   return (
     <AbsoluteFill>
       <BusStopWorld
@@ -169,7 +181,8 @@ export const J4: React.FC = () => {
         t={t}
         tod="dawn"
         man={man}
-        hideMan={walking}
+        hideMan={frontOp <= 0.001}
+        manOpacity={frontOp}
         manScaleX={lerp(1, 0.66, track(t, [[288.7, 0], [289.1, 1, E.in]]))}
         woman={null}
         bouquet={BOUQUET_SEAT}
@@ -177,7 +190,7 @@ export const J4: React.FC = () => {
         lampGlow={0}
         glassDrops={1}
         glassLight={GLASS_LIGHT(1)}
-        extraFigures={walking ? <WalkFigure phase={phase} design={MAN} x={STOP.manX + 10 + dist} y={groundY} scale={K * WALK_FIT} stride={clamp(0.3 + walkT * 1.2, 0, 1)} filter="url(#pencil)" /> : null}
+        extraFigures={showWalker ? <WalkFigure phase={g.phase} design={MAN} x={STOP.manX + 10 + dist} y={groundY} scale={K * WALK_FIT} stride={g.stride} filter="url(#pencil)" /> : null}
       />
       <DawnLight k={1} />
     </AbsoluteFill>

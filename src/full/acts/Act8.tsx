@@ -1,9 +1,11 @@
+import { withLife, SEED_MAN, SEED_WOMAN } from "../../characters/life";
+import { SvgImage, PLATE_RECT } from "../../env/Plate";
 import React, { useCallback, useMemo } from "react";
 import { AbsoluteFill } from "remotion";
 import { E, track, lerp, clamp } from "../../lib/anim";
 import { Cam, WorldSvg, applyCam } from "../../lib/camera";
 import { useSongT } from "../useSongT";
-import { Defs, Sky, Moon, Skyline, Water, Jetty, Willow, BenchBack } from "../../env/Waterside";
+import { Defs, Moon, Water, Jetty, Willow, BenchBack, RiverBackdrop, RiverSkyClip } from "../../env/Waterside";
 import { Lantern, LanternArt } from "../../env/Lantern";
 import { PencilDefs } from "../../draw/Defs";
 import { TShapes, FigureFront, FRONT_NEUTRAL, FrontPose, frontShapes } from "../../characters/front";
@@ -87,13 +89,13 @@ export const G1: React.FC = () => {
       <WorldSvg cam={cam}>
         <PencilDefs />
         <Defs />
-        <Sky y0={-900} y1={562} />
-        <Moon x={MOON.x} y={MOON.y} r={MOON.r} glow={1.6 + bloom} />
-        <ellipse cx={MOON.x} cy={MOON.y} rx={900} ry={520} fill="#7f8f96" opacity={0.08} filter="url(#soft-blur-60)" />
-        <g filter="url(#pencil-soft)">
-          <Skyline base={562} x0={-500} x1={2500} seed={7} />
+        <RiverBackdrop />
+        <RiverSkyClip id="g1sky" />
+        <g clipPath="url(#g1sky)">
+          <Moon x={MOON.x} y={MOON.y} r={MOON.r} glow={1.6 + bloom} />
         </g>
-        <Water y0={560} y1={1300} moonX={MOON.x} t={t} reflW={90} />
+        <ellipse cx={MOON.x} cy={MOON.y} rx={900} ry={520} fill="#7f8f96" opacity={0.08} filter="url(#soft-blur-60)" />
+        <Water y0={560} y1={1300} moonX={MOON.x} t={t} reflW={90} bare />
         <ellipse cx={MOON.x} cy={780} rx={240} ry={320} fill="#c2c0aa" opacity={0.12} filter="url(#soft-blur-60)" />
         <rect x={-600} y={520} width={3200} height={80} fill="#8b989a" opacity={0.16} filter="url(#soft-blur-20)" />
         {lanterns
@@ -117,7 +119,8 @@ export const G1: React.FC = () => {
 
 // ======================= 栈桥正面（G2 / G4 / G6 / G7） =======================
 /** 从水面看向栈桥尽头的长椅：身后是岸、柳树、挂灯的木柱；月光从镜头这边照过去 */
-const JettyFront: React.FC<{ t: number; children?: React.ReactNode; front?: React.ReactNode }> = ({ t, children, front }) => {
+/** 栈桥正面的静态部分：天空、对岸老屋、水面、栈桥平台与木桩（背景板就是照着它画的） */
+export const JettyFrontStatic: React.FC = () => {
   const shore = useMemo(() => {
     const r = mulberry32(7070);
     const roofs: { x: number; w: number; h: number }[] = [];
@@ -171,6 +174,18 @@ const JettyFront: React.FC<{ t: number; children?: React.ReactNode; front?: Reac
       {Array.from({ length: 9 }, (_, i) => (
         <rect key={i} x={-560 + i * 400} y={1036} width={30} height={90} fill="#151b20" />
       ))}
+      {/* 近处水面 */}
+      <rect x={-800} y={1060} width={3600} height={800} fill="url(#jfWater)" />
+      <ellipse cx={320} cy={1170} rx={60} ry={130} fill="#c99a5c" opacity={0.18} filter="url(#soft-blur-20)" />
+    </g>
+  );
+};
+
+/** 栈桥正面（G2、G4、G6、G7）：背景板 + 会动的灯笼与水波纹；children 画在栈桥上（长椅、他） */
+const JettyFront: React.FC<{ t: number; children?: React.ReactNode; front?: React.ReactNode }> = ({ t, children, front }) => {
+  return (
+    <g>
+      <SvgImage src="plates/jetty_night.jpg" rect={PLATE_RECT.jetty} />
       {/* 挂灯笼的木柱（画面左） */}
       <rect x={250} y={380} width={16} height={630} fill="#1b2025" stroke={C.graphite} strokeWidth={2} />
       <path d="M256,390 l70,0" stroke="#1b2025" strokeWidth={8} />
@@ -181,9 +196,6 @@ const JettyFront: React.FC<{ t: number; children?: React.ReactNode; front?: Reac
         <path d="M-26,0 h52 M-22,-18 h44 M-22,18 h44" stroke="#9e7444" strokeWidth={1.4} opacity={0.6} />
       </g>
       {children}
-      {/* 近处水面 */}
-      <rect x={-800} y={1060} width={3600} height={800} fill="url(#jfWater)" />
-      <ellipse cx={320} cy={1170} rx={60} ry={130} fill="#c99a5c" opacity={0.18} filter="url(#soft-blur-20)" />
       {Array.from({ length: 24 }, (_, i) => {
         const r = mulberry32(7200 + i);
         const y = 1080 + Math.pow(r(), 1.3) * 500;
@@ -235,8 +247,10 @@ export const G2: React.FC = () => {
           <PencilDefs />
           <Defs />
           <JettyFront t={t}>
-            <Bench w={STOP.benchW} x={STOP.benchX} y={STOP.seatY} scale={STOP.benchScale} />
-            <FigureFront pose={man} design={MAN} x={STOP.manX} y={SEAT_Y} scale={K} filter="url(#pencil)" />
+            <g filter="url(#rim-moon)">
+              <Bench w={STOP.benchW} x={STOP.benchX} y={STOP.seatY} scale={STOP.benchScale} />
+              <FigureFront pose={withLife(man, t, SEED_MAN, 1)} design={MAN} x={STOP.manX} y={SEAT_Y} scale={K} filter="url(#pencil)" />
+            </g>
             <LightOnFigures warm={1} flick={flick} />
           </JettyFront>
           {/* 远处的河灯 */}
@@ -296,12 +310,12 @@ export const G3: React.FC = () => {
       <WorldSvg cam={cam}>
         <PencilDefs />
         <Defs />
-        <Sky y0={-200} y1={700} />
-        <Moon x={BIG_MOON.x} y={BIG_MOON.y} r={BIG_MOON.r} glow={0.9} />
-        <g filter="url(#pencil-soft)">
-          <Skyline base={712} x0={-400} x1={2400} seed={21} scale={0.55} />
+        <RiverBackdrop scale={0.55} base={712} />
+        <RiverSkyClip id="g3sky" scale={0.55} base={712} />
+        <g clipPath="url(#g3sky)">
+          <Moon x={BIG_MOON.x} y={BIG_MOON.y} r={BIG_MOON.r} glow={0.9} />
         </g>
-        <Water y0={710} y1={1200} moonX={BIG_MOON.x} t={t} reflW={300} seed={23} />
+        <Water y0={710} y1={1200} moonX={BIG_MOON.x} t={t} reflW={300} seed={23} bare />
         {/* 船（乌篷船剪影）与船头的她 */}
         <g transform={`translate(${bx},${by})`} filter="url(#pencil-soft)">
           <path d="M-330,-36 Q-170,40 0,44 Q190,40 340,-48 L318,-22 Q160,18 0,18 Q-170,16 -306,-18 Z" fill={SIL} />
@@ -331,7 +345,7 @@ export const G3: React.FC = () => {
 // ======================= G4 =======================
 export const G4: React.FC = () => {
   const t = useSongT("G4");
-  const cam: Cam = { x: STOP.manX + 40, y: SEAT_Y - 205 + track(t, [[212.35, 0], [219.0, -12, E.drift]]), scale: track(t, [[212.35, 1.72], [219.0, 1.8, E.drift]]) };
+  const cam: Cam = { x: STOP.manX + 40, y: SEAT_Y - 235 + track(t, [[212.35, 0], [219.0, -12, E.drift]]), scale: track(t, [[212.35, 1.72], [219.0, 1.8, E.drift]]) };
   const lift = track(t, [[213.6, 0], [214.7, 1, E.inOut]]);
   const open = track(t, [[215.3, 0], [215.9, 1, E.out]]);
   const follow = track(t, [[215.6, 0], [217.2, 1, E.inOut]]);
@@ -389,8 +403,10 @@ export const G4: React.FC = () => {
         <g style={{ filter: "blur(5px)" }}>
           <JettyFront t={t} />
         </g>
-        <Bench w={STOP.benchW} x={STOP.benchX} y={STOP.seatY} scale={STOP.benchScale} part="back" />
-        <FigureFront pose={man} design={MAN} x={STOP.manX} y={SEAT_Y} scale={K} filter="url(#pencil)" />
+        <g filter="url(#rim-moon)">
+          <Bench w={STOP.benchW} x={STOP.benchX} y={STOP.seatY} scale={STOP.benchScale} part="back" />
+          <FigureFront pose={withLife(man, t, SEED_MAN, 1)} design={MAN} x={STOP.manX} y={SEAT_Y} scale={K} filter="url(#pencil)" />
+        </g>
       </WorldSvg>
       <FxCanvas draw={drawFx} />
       {/* 河灯的暖光从下方映上来 */}
@@ -456,13 +472,13 @@ export const G5: React.FC = () => {
       <WorldSvg cam={cam}>
         <PencilDefs />
         <Defs />
-        <Sky y0={-900} y1={562} />
-        <Moon x={MOON.x} y={MOON.y} r={MOON.r} glow={1.6} />
-        <ellipse cx={MOON.x} cy={MOON.y} rx={900} ry={520} fill="#7f8f96" opacity={0.08} filter="url(#soft-blur-60)" />
-        <g filter="url(#pencil-soft)">
-          <Skyline base={562} x0={-900} x1={3200} seed={7} />
+        <RiverBackdrop />
+        <RiverSkyClip id="g5sky" />
+        <g clipPath="url(#g5sky)">
+          <Moon x={MOON.x} y={MOON.y} r={MOON.r} glow={1.6} />
         </g>
-        <Water y0={560} y1={1500} moonX={MOON.x} t={t} reflW={90} />
+        <ellipse cx={MOON.x} cy={MOON.y} rx={900} ry={520} fill="#7f8f96" opacity={0.08} filter="url(#soft-blur-60)" />
+        <Water y0={560} y1={1500} moonX={MOON.x} t={t} reflW={90} bare />
         <rect x={-900} y={520} width={4200} height={80} fill="#8b989a" opacity={0.16} filter="url(#soft-blur-20)" />
         {/* 河灯的光在水上连成一条暖色的带 */}
         <path d={`M${RIVER[0][0]},${RIVER[0][1]} C${RIVER[1][0]},${RIVER[1][1]} ${RIVER[2][0]},${RIVER[2][1]} ${RIVER[3][0]},${RIVER[3][1]}`} stroke="#c99a5c" strokeWidth={90} fill="none" opacity={0.1} filter="url(#soft-blur-60)" />
@@ -622,7 +638,9 @@ export const drawMemoryHer = (
   }
 };
 
-export const herMemPose = (t: number, look: number, smile: number): FrontPose => ({
+export const herMemPose = (t: number, look: number, smile: number): FrontPose =>
+  withLife(herMemPoseRaw(t, look, smile), t, SEED_WOMAN, 0.6);
+const herMemPoseRaw = (t: number, look: number, smile: number): FrontPose => ({
   ...FRONT_NEUTRAL,
   head: { turn: lerp(0.12, -0.5, look), pitch: lerp(0.2, 0.02, look), eyeOpen: lerp(0.7, 0.45, smile), gaze: lerp(0.1, -0.6, look), brow: 0.1, mouth: lerp(0.15, 0.85, smile) },
   headTilt: lerp(0, -6, look),
@@ -642,9 +660,11 @@ const JettyBenchScene: React.FC<{ t: number; cam: Cam; man: FrontPose; her: Fron
         <PencilDefs />
         <Defs />
         <JettyFront t={t}>
-          <Bench w={STOP.benchW} x={STOP.benchX} y={STOP.seatY} scale={STOP.benchScale} />
           <ellipse cx={STOP.benchX} cy={STOP.seatY + 300} rx={560} ry={24} fill="#10161b" opacity={0.4} />
-          <FigureFront pose={man} design={MAN} x={STOP.manX} y={SEAT_Y} scale={K} filter="url(#pencil)" />
+          <g filter="url(#rim-moon)">
+            <Bench w={STOP.benchW} x={STOP.benchX} y={STOP.seatY} scale={STOP.benchScale} />
+            <FigureFront pose={withLife(man, t, SEED_MAN, 1)} design={MAN} x={STOP.manX} y={SEAT_Y} scale={K} filter="url(#pencil)" />
+          </g>
           <LightOnFigures warm={0.8} flick={flick} />
         </JettyFront>
       </WorldSvg>
@@ -655,7 +675,7 @@ const JettyBenchScene: React.FC<{ t: number; cam: Cam; man: FrontPose; her: Fron
 
 export const G6: React.FC = () => {
   const t = useSongT("G6");
-  const cam: Cam = { x: 965, y: 600, scale: track(t, [[225.3, 1.06], [231.6, 1.14, E.drift]]) };
+  const cam: Cam = { x: 965, y: 565, scale: track(t, [[225.3, 1.06], [231.6, 1.14, E.drift]]) };
   const appear = track(t, [[225.5, 0], [226.8, 1, E.inOut]]);
   // 纸层慢慢靠拢，但始终没有完全对齐
   const align = track(t, [[226.4, 0], [231.0, 1, E.inOut]]);
@@ -668,7 +688,7 @@ export const G6: React.FC = () => {
 
 export const G7: React.FC = () => {
   const t = useSongT("G7");
-  const cam: Cam = { x: track(t, [[231.6, 1000], [237.4, 1030, E.drift]]), y: 470, scale: track(t, [[231.6, 1.42], [237.4, 1.5, E.drift]]) };
+  const cam: Cam = { x: track(t, [[231.6, 1000], [237.4, 1030, E.drift]]), y: 435, scale: track(t, [[231.6, 1.42], [237.4, 1.5, E.drift]]) };
   const look = track(t, [[231.9, 0], [233.0, 1, E.inOut]]);
   const smile = track(t, [[232.7, 0.2], [233.6, 1, E.inOut]]);
   const dissolveAt = 234.6;
@@ -712,12 +732,12 @@ export const G8: React.FC = () => {
       <WorldSvg cam={cam}>
         <PencilDefs />
         <Defs />
-        <Sky y0={-400} y1={436} />
-        <Moon x={MOON8.x} y={MOON8.y} r={MOON8.r} />
-        <g filter="url(#pencil-soft)">
-          <Skyline base={436} x0={-400} x1={2400} seed={9} scale={0.8} />
+        <RiverBackdrop scale={0.8} base={436} />
+        <RiverSkyClip id="g8sky" scale={0.8} base={436} />
+        <g clipPath="url(#g8sky)">
+          <Moon x={MOON8.x} y={MOON8.y} r={MOON8.r} />
         </g>
-        <Water y0={434} y1={900} moonX={MOON8.x} t={t} reflW={130} seed={6} />
+        <Water y0={434} y1={900} moonX={MOON8.x} t={t} reflW={130} seed={6} bare />
         <ellipse cx={MOON8.x} cy={640} rx={220} ry={190} fill="#c9c6b0" opacity={0.09} filter="url(#soft-blur-60)" />
         <rect x={-400} y={420} width={2800} height={40} fill="#8c999b" opacity={0.08} filter="url(#soft-blur-20)" />
         <g>
@@ -736,7 +756,7 @@ export const G8: React.FC = () => {
         <BenchBack x={BENCH8.x} y={BENCH8.y} w={BENCH8.w} scale={BENCH8.scale} part="legs" />
         <ellipse cx={BENCH8.x} cy={BENCH8.y + 246} rx={600} ry={22} fill="#141814" opacity={0.45} />
         <g transform={`translate(${HIM8.x},${HIM8.y}) scale(${HIM8.scale})`}>
-          <TShapes shapes={backShapes({ headTurn: turn, headTilt: 2 + turn * 4, slump: 0.55, lean: 1 }, MAN)} line={MAN.line} lw={MAN.lw} filter="url(#pencil)" />
+          <TShapes shapes={backShapes({ headTurn: turn, headTilt: 2 + turn * 4, slump: 0.55, lean: 1 }, MAN)} line={MAN.line} lw={MAN.lw} filter="url(#pencil)" paint />
         </g>
         <BenchBack x={BENCH8.x} y={BENCH8.y} w={BENCH8.w} scale={BENCH8.scale} part="back" />
       </WorldSvg>

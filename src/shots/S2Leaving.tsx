@@ -1,8 +1,8 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { BusStopWorld, STOP } from "../env/BusStop";
-import { FRONT_NEUTRAL, FrontPose } from "../characters/front";
-import { WalkFigure } from "../characters/walk";
+import { FRONT_NEUTRAL, FrontPose, riseHand } from "../characters/front";
+import { WalkFigure, gait } from "../characters/walk";
 import { WOMAN } from "../characters/designs";
 import { E, track, lerp } from "../lib/anim";
 import { noise1 } from "../lib/random";
@@ -29,7 +29,8 @@ export const S2_T = {
 
 export const s2Cam = (t: number): Cam => ({
   x: 985 + track(t, [[9.63, 0], [17.57, -10, E.drift]]),
-  y: 548,
+  // 她站起来时镜头轻轻上摇，跟住她犹豫回看的那一下；她走开后落回长椅
+  y: track(t, [[S2_T.rise[0] + 0.1, 510], [S2_T.hesitate[0] + 0.05, 340, E.inOut], [S2_T.turn[1], 352], [S2_T.settle[0], 510, E.inOut]]),
   scale: track(t, [[9.63, 1.3], [17.57, 1.33, E.drift]]),
 });
 
@@ -66,26 +67,22 @@ export const manPoseS2 = (t: number): FrontPose => {
 export const womanPoseS2 = (t: number): FrontPose => {
   const w = track(t, [[S2_T.withdraw[0], 0], [S2_T.withdraw[1], 1, E.inOut]]);
   const lift = Math.sin(Math.PI * w); // 抽手时手略微抬起
-  const lean = track(t, [[S2_T.lean[0], 0], [S2_T.lean[1], 1, E.in], [S2_T.rise[1], 0.15, E.out]]);
+  // 起身：先前倾（重心移到脚上）→ 撑着大腿站起来 → 上身最后才挺直
+  const bend = track(t, [[S2_T.lean[0], 0], [S2_T.lean[1], 0.9, E.inOut], [S2_T.rise[0] + 0.35, 1, E.inOut], [S2_T.rise[1] + 0.05, 0, E.out]]);
   const stand = track(t, [[S2_T.rise[0], 0], [S2_T.rise[1], 1, E.inOut]]);
-  const rise = -250 * stand * stand * (3 - 2 * stand);
   const hes = track(t, [[S2_T.hesitate[0], 0], [S2_T.hesitate[0] + 0.25, 1, E.out], [S2_T.hesitate[1], 0, E.in]]);
   const turnAway = track(t, [[S2_T.turn[0] - 0.1, 0], [S2_T.turn[1], 1, E.in]]);
   const breathe = 0.5 + 0.5 * Math.sin(t * 2.2 + 1);
   const hx = lerp(-112, -46, w);
   const hy = lerp(-18, -38, w) - lift * 26;
-  // 坐 → 双手撑在大腿上起身 → 站直后手臂自然下垂（犹豫时靠他那侧的手微微抬起）
-  const hipY = rise + 6;
-  const sk = Math.min(1, stand * 1.25);
-  const lx = lerp(lerp(hx, -44, lean), -84 - hes * 16, sk);
-  const ly = lerp(lerp(hy, -26, lean), -256 - hes * 22, sk * sk) + (hipY - 6) * (1 - sk * sk) * 0.92;
-  const rx = lerp(lerp(42, 44, lean), 84, sk);
-  const ry = lerp(-36, -258, sk * sk) + (hipY - 6) * (1 - sk * sk) * 0.92;
+  const base = { stand, bend, slump: lerp(0, 0.2, w) * (1 - stand), shoulderLift: 0, legSlant: 1 };
+  const hl = riseHand(base, WOMAN, -1, [hx, hy]);
+  const hr = riseHand(base, WOMAN, 1, [42, -36]);
   return {
     ...FRONT_NEUTRAL,
     head: {
-      turn: lerp(0.6, 0.2, w) + lean * 0.1,
-      pitch: lerp(-0.1, 0.35, w) + lean * 0.3,
+      turn: lerp(0.6, 0.2, w) + bend * 0.05,
+      pitch: lerp(-0.1, 0.35, w) + bend * 0.3 - stand * 0.15,
       eyeOpen: lerp(0.9, 0.6, w),
       gaze: 0.4,
       brow: 0.45,
@@ -93,14 +90,36 @@ export const womanPoseS2 = (t: number): FrontPose => {
     },
     headTilt: lerp(0, -2, w),
     shoulderLift: track(t, [[9.75, 0], [10.05, 0.5, E.out], [10.9, 0, E.inOut]]),
-    slump: lerp(0, 0.2, w) * (1 - stand),
+    slump: base.slump,
     bodyTurn: lerp(lerp(0.3, 0.45, w) * (1 - stand * 0.6), 1, turnAway) - hes * 0.25,
     stand,
+    bend,
     legSlant: 1,
-    handL: { at: [lx, ly], fore: lerp(lerp(1, 0.6, w), 1, sk) },
-    handR: { at: [rx, ry], fore: lerp(0.6, 1, sk) },
+    // 犹豫：靠他那侧的手朝他抬了一下又放下（前臂向前伸，正面看是透视缩短，肘部贴着身体）
+    handL: {
+      at: [lerp(hl.at[0], -66, hes), lerp(hl.at[1], -334, hes)],
+      fore: lerp(lerp(lerp(1, 0.6, w), hl.fore, Math.min(1, bend * 2 + stand)), 0.45, hes),
+      curl: lerp(hl.curl, 0.35, hes),
+      angle: hes * 25,
+    },
+    handR: hr,
     breathe,
   };
+};
+
+/** 正面 ↔ 侧身两种画法交叉淡化的时长（秒）：切换点前后各一半 */
+export const TURN_X = 0.1;
+/** 转身时正面画法的不透明度 */
+export const turnFade = (t: number) => track(t, [[S2_T.turn[1] - TURN_X, 1], [S2_T.turn[1] + 0.07, 0, E.inOut]]);
+
+/** 她转身之后的步态（F3 的铅笔草稿重演同一段，所以单独导出） */
+export const s2Walk = (t: number) => {
+  const walkT = Math.max(0, t - S2_T.turn[1]);
+  // 起步 0.55 s 加速到 560/s（约每秒 2.4 步，走得很快）；步幅从小到大
+  const v = 560;
+  const acc = 0.55;
+  const g = gait(walkT, (u) => (u < acc ? (v * u) / acc : v), (u) => Math.min(1, 0.35 + u * 1.5), WOMAN, STOP.figScale);
+  return { walking: t >= S2_T.turn[1], walkT, ...g, x: STOP.womanX + 6 + g.dist, groundY: STOP.seatY - 8 + 262 * STOP.figScale };
 };
 
 export const S2Leaving: React.FC = () => {
@@ -109,27 +128,20 @@ export const S2Leaving: React.FC = () => {
   const cam = s2Cam(t);
   const man = manPoseS2(t);
   const woman = womanPoseS2(t);
-  // 正面站姿转到侧身后（头部已在画外），在一帧内换成侧身行走画法
-  const walking = t >= S2_T.turn[1];
-  const walkT = Math.max(0, t - S2_T.turn[1]);
-  // 起步慢，随后匀速：距离 = 加速段 + 匀速段
-  const v = 760;
-  const acc = 0.55;
-  const dist = walkT < acc ? (0.5 * v * walkT * walkT) / acc : 0.5 * v * acc + v * (walkT - acc);
-  const phase = (dist / 380) * Math.PI;
-  const walkX = STOP.womanX + 6 + dist;
-  const groundY = STOP.seatY - 8 + 262 * STOP.figScale;
+  // 正面站姿收窄到侧身宽度时，和侧身行走画法交叉淡化（侧身在下层先出现，正面在上层淡出）
+  const w = s2Walk(t);
+  const front = turnFade(t);
   return (
     <AbsoluteFill>
       <BusStopWorld
         cam={cam}
         t={t}
         man={man}
-        woman={walking ? null : woman}
+        woman={front > 0.001 ? woman : null}
+        womanOpacity={front}
+        womanOnTop
         womanScaleX={track(t, [[S2_T.turn[0], 1], [S2_T.turn[1], 0.66, E.in]])}
-        extraFigures={
-          walking ? <WalkFigure phase={phase} design={WOMAN} x={walkX} y={groundY} scale={STOP.figScale} stride={Math.min(1, 0.35 + walkT * 1.5)} filter="url(#pencil)" /> : null
-        }
+        extraFigures={t >= S2_T.turn[1] - TURN_X ? <WalkFigure phase={w.phase} design={WOMAN} x={w.x} y={w.groundY} scale={STOP.figScale} stride={w.stride} filter="url(#pencil)" /> : null}
       />
     </AbsoluteFill>
   );

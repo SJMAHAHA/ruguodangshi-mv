@@ -1,3 +1,4 @@
+import { REF_NO_SUBS } from "../config/refs";
 import React from "react";
 import { AbsoluteFill, interpolate, staticFile, useCurrentFrame } from "remotion";
 import { loadFont } from "@remotion/fonts";
@@ -16,7 +17,7 @@ export const Subtitles: React.FC<{ lyrics?: { text: string; in: number; out: num
   const frame = useCurrentFrame();
   const t = frame / FPS;
   const cur = lyrics.find((l) => t >= l.in - 0.3 && t <= l.out + 0.3);
-  if (!cur) return null;
+  if (!cur || REF_NO_SUBS) return null;
   const op = interpolate(t, [cur.in - 0.12, cur.in + 0.18, cur.out - 0.12, cur.out + 0.18], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", pointerEvents: "none" }}>

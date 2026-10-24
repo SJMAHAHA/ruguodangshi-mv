@@ -1,6 +1,11 @@
 import React from "react";
 import { C } from "../config/palette";
 import { smoothClosed, smoothOpen, P } from "../lib/geom";
+import { ASSETS } from "../config/assets";
+import { SvgImage } from "../env/Plate";
+
+/** 花束贴图在局部坐标里的范围（原点 = 花束和座面的接触点；参考底稿见 dev/PlateRef 的 BouquetPlateRef） */
+export const BOUQUET_RECT = { x: -140, y: -120, w: 300, h: 150 };
 
 /**
  * 一小束暗红花（包装纸 + 5 朵花 + 几片叶子），横放在长椅上。
@@ -35,6 +40,12 @@ export const Bouquet: React.FC<{ x: number; y: number; scale: number; rot?: numb
   const wrap: P[] = [
     [-118, -10], [-60, -16], [10, -30], [44, -78], [70, -96], [92, -84], [118, -80], [138, -40], [128, -6], [80, 2], [10, 2], [-60, 0], [-118, 2],
   ];
+  if (ASSETS.bouquet)
+    return (
+      <g transform={`translate(${x},${y}) rotate(${rot}) scale(${flip ? -scale : scale},${scale})`}>
+        <SvgImage src={memory ? "plates/bouquet_memory.png" : "plates/bouquet_night.png"} rect={BOUQUET_RECT} />
+      </g>
+    );
   return (
     <g transform={`translate(${x},${y}) rotate(${rot}) scale(${flip ? -scale : scale},${scale})`} filter={filter}>
       {/* 包装纸背面 */}

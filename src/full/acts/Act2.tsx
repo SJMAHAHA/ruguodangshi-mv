@@ -1,5 +1,9 @@
 import React from "react";
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, delayRender, continueRender } from "remotion";
+import { Glyph, tipOnLine, glyphEnds, revealOf, wristTurn } from "../../lib/writing";
+import { SvgImage } from "../../env/Plate";
+import { WRITE_RECT, WRITE_REF_ANGLE } from "../../props/Hands";
+import { ASSETS } from "../../config/assets";
 import { BusStopWorld, STOP } from "../../env/BusStop";
 import { FRONT_NEUTRAL, FrontPose, headAnchor } from "../../characters/front";
 import { MAN_MEM, WOMAN_MEM } from "../../characters/designs";
@@ -113,7 +117,7 @@ const MemoryPaper: React.FC = () => (
 // ---------------- B1 一副耳机 ----------------
 export const B1: React.FC = () => {
   const t = useSongT("B1");
-  const cam: Cam = { x: 930, y: 540, scale: track(t, [[38.25, 1.32], [44.1, 1.38, E.drift]]) };
+  const cam: Cam = { x: 930, y: 500, scale: track(t, [[38.25, 1.32], [44.1, 1.38, E.drift]]) };
   const glance = track(t, [[40.6, 0], [41.3, 1, E.inOut], [42.6, 1], [43.3, 0.2, E.inOut]]);
   const man = manSummer(t, {}, { turn: lerp(0.3, 0.45, glance), mouth: 0.4 + glance * 0.3, eyeOpen: 0.75 + glance * 0.1 });
   const her = herSummer(t, {}, { eyeOpen: lerp(0.22, 0.75, glance * 0.8), turn: lerp(-0.15, -0.35, glance) });
@@ -129,7 +133,7 @@ export const B1: React.FC = () => {
 const POEM = "人生若只如初见";
 export const B2: React.FC = () => {
   const t = useSongT("B2");
-  const cam: Cam = { x: 905 + track(t, [[44.1, 0], [51, 14, E.drift]]), y: 300, scale: track(t, [[44.1, 2.0], [51, 2.1, E.drift]]) };
+  const cam: Cam = { x: 905 + track(t, [[44.1, 0], [51, 14, E.drift]]), y: 278, scale: track(t, [[44.1, 2.0], [51, 2.1, E.drift]]) };
   const lean = track(t, [[44.3, 0], [45.2, 1, E.inOut], [50.2, 1], [50.9, 0.6, E.inOut]]);
   const close = track(t, [[45.8, 0], [47.2, 1, E.inOut]]);
   const man = manSummer(t, {}, { turn: 0.18, pitch: 0.12, eyeOpen: lerp(0.75, 0.2, close), mouth: 0.45 + close * 0.3, gaze: 0.2 });
@@ -150,10 +154,11 @@ export const B2: React.FC = () => {
     const r = mulberry32(900 + i);
     const k = clamp(age / 2.2);
     const e = 1 - Math.pow(1 - k, 2);
-    // 从她唇边飘出，绕过他的耳边，向左上方散开
-    const x = lerp(mouth[0], earW[0] - 10, e) - Math.max(0, age - 1.6) * 38 + Math.sin(age * 2 + i) * 5;
-    const y = lerp(mouth[1], earW[1] - 6 + (r() - 0.5) * 30, e) - Math.max(0, age - 1.6) * 22;
-    const op = clamp(age / 0.35) * clamp((4.2 - age) / 1.2) * 0.9;
+    // 从她唇边飘出，绕过他的耳边，再从两人头顶之间往上散开（不往左飘：左边是他的脸）
+    const drift = Math.max(0, age - 1.6);
+    const x = lerp(mouth[0], earW[0] + 4, e) + drift * 9 + Math.sin(age * 2 + i) * 5;
+    const y = lerp(mouth[1], earW[1] - 6 + (r() - 0.5) * 30, e) - drift * 36;
+    const op = clamp(age / 0.35) * clamp((3.6 - age) / 1.0) * 0.85;
     return (
       <text key={i} x={x} y={y} fontFamily={HAND_FONT} fontSize={34} fill={C.memSepia} opacity={op} transform={`rotate(${(r() - 0.5) * 18} ${x} ${y})`}>
         {ch}
@@ -179,34 +184,129 @@ const LINES: Line[] = [
   { text: "汝敢！", x: 1020, y: 650, t0: 56.15, per: 0.22, ink: "#6b4a3a", who: "her" },
 ];
 const FS = 62;
-const writeState = (t: number) => {
-  let pen: { x: number; y: number; who: "her" | "him" } | null = null;
-  const glyphs: { ch: string; x: number; y: number; reveal: number; ink: string }[] = [];
-  for (const L of LINES) {
-    L.text.split("").forEach((ch, i) => {
-      const narrow = "，。？！".includes(ch);
-      const x = L.x + L.text.slice(0, i).split("").reduce((s, c) => s + ("，。？！".includes(c) ? FS * 0.6 : FS * 1.02), 0);
-      const ti = L.t0 + i * L.per;
-      const rv = clamp((t - ti) / (L.per * 0.9));
-      glyphs.push({ ch, x, y: L.y, reveal: rv, ink: L.ink });
-      if (rv > 0 && rv < 1) pen = { x: x + rv * (narrow ? FS * 0.5 : FS), y: L.y - FS * 0.25, who: L.who };
-    });
-    const end = L.t0 + L.text.length * L.per;
-    if (t >= end && t < end + 0.35) {
-      const lastX = L.x + L.text.split("").reduce((s, c) => s + ("，。？！".includes(c) ? FS * 0.6 : FS * 1.02), 0);
-      pen = { x: lastX + 6, y: L.y - FS * 0.3 - (t - end) * 60, who: L.who };
+const isNarrow = (ch: string) => "，。？！".includes(ch);
+/** 每一行拆成字框（笔顺和显字都按字框走） */
+const LINE_GLYPHS: Glyph[][] = LINES.map((L, li) => {
+  let x = L.x;
+  return L.text.split("").map((ch, i) => {
+    const narrow = isNarrow(ch);
+    const g: Glyph = { x, top: L.y - FS * 0.88, w: narrow ? FS * 0.5 : FS, h: FS, t0: L.t0 + i * L.per, dur: L.per * 0.9, seed: 7100 + li * 97 + i, narrow };
+    x += narrow ? FS * 0.6 : FS * 1.02;
+    return g;
+  });
+});
+const lineEnd = (li: number) => {
+  const g = LINE_GLYPHS[li][LINE_GLYPHS[li].length - 1];
+  return g.t0 + g.dur;
+};
+
+/** 她在「汝敢！」后面画的鼓腮小脸：先画圆，再点两只眼睛、画嘴 */
+const DOODLE = { x: 1260, y: 628, r: 30, t0: 57.0, circle: 0.4, face: 0.2 };
+const doodleTip = (t: number): { p: P; lift: number } | null => {
+  const u = t - DOODLE.t0;
+  if (u < 0 || u > DOODLE.circle + DOODLE.face) return null;
+  if (u <= DOODLE.circle) {
+    const a = -Math.PI / 2 + (u / DOODLE.circle) * Math.PI * 2;
+    return { p: [DOODLE.x + Math.cos(a) * DOODLE.r, DOODLE.y + Math.sin(a) * DOODLE.r], lift: 0 };
+  }
+  const f = (u - DOODLE.circle) / DOODLE.face; // 0..1：左眼 → 右眼 → 嘴
+  const pts: P[] = [
+    [DOODLE.x - 12, DOODLE.y - 6],
+    [DOODLE.x + 11, DOODLE.y - 6],
+    [DOODLE.x, DOODLE.y + 12],
+  ];
+  const seg = Math.min(2, Math.floor(f * 3));
+  const k = f * 3 - seg;
+  const from: P = seg === 0 ? [DOODLE.x, DOODLE.y - DOODLE.r] : pts[seg - 1];
+  return { p: [from[0] + (pts[seg][0] - from[0]) * k, from[1] + (pts[seg][1] - from[1]) * k], lift: Math.sin(Math.PI * k) * 0.8 };
+};
+/** 写完「汝敢！」到开始画小脸之间：抬笔移过去 */
+const toDoodle = (t: number): { p: P; lift: number } => {
+  const end = glyphEnds(LINE_GLYPHS[2][LINE_GLYPHS[2].length - 1]).end;
+  const k = clamp((t - lineEnd(2)) / (DOODLE.t0 - lineEnd(2)));
+  const to: P = [DOODLE.x, DOODLE.y - DOODLE.r];
+  return { p: [end[0] + (to[0] - end[0]) * k, end[1] + (to[1] - end[1]) * k], lift: Math.sin(Math.PI * k) };
+};
+
+/**
+ * 两只写字的手：从写字人的视角，右手从画面下方伸进来（她从右下，他从左下）。
+ * 写之前从画面外伸进来，写完收回去；两人换手时一只收、一只伸，中间有一点交叠。
+ */
+type Tip = { p: P; lift: number };
+type Writer = { segs: { t0: number; t1: number; tip: (t: number) => Tip | null }[]; elbow: P; off: P; natural: number };
+const WRITERS: Record<"her" | "him", Writer> = {
+  her: {
+    segs: [
+      { t0: LINES[0].t0, t1: lineEnd(0), tip: (t) => tipOnLine(LINE_GLYPHS[0], t) },
+      { t0: LINES[2].t0, t1: DOODLE.t0 + DOODLE.circle + DOODLE.face, tip: (t) => tipOnLine(LINE_GLYPHS[2], t) ?? doodleTip(t) ?? toDoodle(t) },
+    ],
+    elbow: [1470, 1220],
+    off: [1820, 1420],
+    natural: 53,
+  },
+  him: {
+    segs: [{ t0: LINES[1].t0, t1: lineEnd(1), tip: (t) => tipOnLine(LINE_GLYPHS[1], t) }],
+    elbow: [335, 1240],
+    off: [80, 1420],
+    natural: 127,
+  },
+};
+const ENTER = 0.5;
+const HOLD = 0.15;
+const EXIT = 0.5;
+/** B3 结束的时刻：最后一段写完之后镜头就结束了，手留在纸上 */
+const B3_END = 57.7;
+const easeIO = (x: number) => x * x * (3 - 2 * x);
+/** 写字人在 t 时刻的笔尖位置、抬笔程度；手不在画面里时返回 null */
+const writerAt = (w: Writer, t: number): Tip | null => {
+  for (const sg of w.segs) {
+    if (t >= sg.t0 - ENTER && t < sg.t0) {
+      const start = sg.tip(sg.t0)!.p;
+      const k = easeIO((t - (sg.t0 - ENTER)) / ENTER);
+      return { p: [w.off[0] + (start[0] - w.off[0]) * k, w.off[1] + (start[1] - w.off[1]) * k], lift: 1 - k };
+    }
+    if (t >= sg.t0 && t <= sg.t1) return sg.tip(t);
+    const end = sg.tip(sg.t1)!.p;
+    if (t > sg.t1 && sg.t1 + HOLD + EXIT > B3_END) return { p: end, lift: 0.3 * clamp((t - sg.t1) / HOLD) };
+    if (t > sg.t1 && t <= sg.t1 + HOLD + EXIT) {
+      if (t <= sg.t1 + HOLD) return { p: end, lift: 0.3 * ((t - sg.t1) / HOLD) };
+      const k = easeIO((t - sg.t1 - HOLD) / EXIT);
+      return { p: [end[0] + (w.off[0] - end[0]) * k, end[1] + (w.off[1] - end[1]) * k], lift: 0.3 + 0.7 * k };
     }
   }
-  return { glyphs, pen: pen as { x: number; y: number; who: "her" | "him" } | null };
+  return null;
+};
+
+/** 写字的手：贴图（Codex 画的，见 asset-requests/）到了以后用贴图，否则先用 SVG 示意 */
+const WriteHand: React.FC<{ who: "her" | "him"; tip: P; lift: number; elbow?: P }> = ({ who, tip, lift, elbow }) => {
+  const w = WRITERS[who];
+  const turn = wristTurn(tip, elbow ?? w.elbow, w.natural);
+  const sc = 1.15 * (1 + 0.045 * lift);
+  const id = `wh-${who}`;
+  return (
+    <g>
+      <defs>
+        {/* 手在纸上的影子：光从左上来；抬笔时影子离手更远、更淡、更虚 */}
+        <filter id={id} x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx={10 + 16 * lift} dy={14 + 20 * lift} stdDeviation={6 + 5 * lift} floodColor="#3a2a1c" floodOpacity={0.3 - 0.1 * lift} />
+        </filter>
+      </defs>
+      <g transform={`translate(${tip[0] - 5 * lift},${tip[1] - 9 * lift}) rotate(${turn}) scale(${sc})`} filter={`url(#${id})`}>
+        {ASSETS.writeHands ? (
+          <SvgImage src={`plates/hand_write-${who}.png`} rect={WRITE_RECT[who]} />
+        ) : (
+          <PencilHand x={0} y={0} angle={WRITE_REF_ANGLE[who]} skin={who === "her" ? "#e6c9ad" : "#e1c3a6"} sleeve={who === "her" ? "#e6c98f" : "#efe7d4"} line={C.memSepia} flip={who === "him"} />
+        )}
+      </g>
+    </g>
+  );
 };
 
 export const B3: React.FC = () => {
   const t = useSongT("B3");
-  const { glyphs, pen } = writeState(t);
   const drift = track(t, [[51, 0], [57.7, 1, E.drift]]);
-  // 没在写的时候，笔停在最后写的位置附近
-  const rest: { x: number; y: number; who: "her" | "him" } = t < 53.9 ? { x: 1300, y: 420, who: "her" } : t < 56.1 ? { x: 1240, y: 560, who: "him" } : { x: 1250, y: 690, who: "her" };
-  const p = pen ?? rest;
+  const her = writerAt(WRITERS.her, t);
+  const him = writerAt(WRITERS.him, t);
   return (
     <AbsoluteFill style={{ background: "#c9a86e" }}>
       <svg width={1920} height={1080}>
@@ -231,35 +331,35 @@ export const B3: React.FC = () => {
           {Array.from({ length: 12 }, (_, i) => (
             <ellipse key={i} cx={360} cy={190 + i * 62} rx={14} ry={9} fill="none" stroke="#8a8a85" strokeWidth={4} />
           ))}
-          {glyphs.map((g, i) =>
-            g.reveal > 0 ? (
-              <g key={i}>
-                <clipPath id={`gc-${i}`}>
-                  <rect x={g.x - 4} y={g.y - FS} width={(FS + 8) * g.reveal} height={FS * 1.3} />
-                </clipPath>
-                <text x={g.x} y={g.y} fontFamily={HAND_FONT} fontSize={FS} fill={g.ink} clipPath={`url(#gc-${i})`} opacity={0.92}>
-                  {g.ch}
-                </text>
-              </g>
-            ) : null
+          {/* 字跟着笔顺从上往下显出来 */}
+          {LINES.map((L, li) =>
+            LINE_GLYPHS[li].map((g, i) => {
+              const rv = revealOf(g, t);
+              if (rv <= 0) return null;
+              return (
+                <g key={`${li}-${i}`}>
+                  <clipPath id={`gc-${li}-${i}`}>
+                    <rect x={g.x - 6} y={g.top - 8} width={g.w + 24} height={(g.h + 20) * rv} />
+                  </clipPath>
+                  <text x={g.x} y={L.y} fontFamily={HAND_FONT} fontSize={FS} fill={L.ink} clipPath={`url(#gc-${li}-${i})`} opacity={0.92}>
+                    {L.text[i]}
+                  </text>
+                </g>
+              );
+            })
           )}
           {/* 她在「汝敢！」后面画了个鼓腮的小脸 */}
-          {t > 57.0 ? (
-            <g transform="translate(1260,628)" stroke="#6b4a3a" strokeWidth={4} fill="none" strokeLinecap="round">
-              <circle r={30} pathLength={1} strokeDasharray={1} strokeDashoffset={1 - clamp((t - 57.0) / 0.4)} />
-              {t > 57.4 ? <path d="M-12,-6 l6,0 M8,-6 l6,0 M-8,12 q8,-6 16,0" /> : null}
+          {t > DOODLE.t0 ? (
+            <g transform={`translate(${DOODLE.x},${DOODLE.y})`} stroke="#6b4a3a" strokeWidth={4} fill="none" strokeLinecap="round">
+              <circle r={DOODLE.r} pathLength={1} strokeDasharray={1} strokeDashoffset={1 - clamp((t - DOODLE.t0) / DOODLE.circle)} transform="rotate(-90)" />
+              {t > DOODLE.t0 + DOODLE.circle + DOODLE.face * 0.2 ? <path d="M-12,-6 l1,0" /> : null}
+              {t > DOODLE.t0 + DOODLE.circle + DOODLE.face * 0.55 ? <path d="M11,-6 l1,0" /> : null}
+              {t > DOODLE.t0 + DOODLE.circle + DOODLE.face * 0.9 ? <path d="M-8,12 q8,-6 16,0" /> : null}
             </g>
           ) : null}
-          <PencilHand
-            x={p.x}
-            y={p.y + 4}
-            angle={p.who === "her" ? 6 : -8}
-            scale={1.15}
-            skin={p.who === "her" ? "#e6c9ad" : "#e1c3a6"}
-            sleeve={p.who === "her" ? "#e6c98f" : "#efe7d4"}
-            line={C.memSepia}
-            flip={p.who === "him"}
-          />
+          {/* 他的手先画，她的手在上面（换手时两只手会短暂同时出现） */}
+          {him ? <WriteHand who="him" tip={him.p} lift={him.lift} /> : null}
+          {her ? <WriteHand who="her" tip={her.p} lift={her.lift} /> : null}
         </g>
       </svg>
       <MemoryPaper />
@@ -268,11 +368,64 @@ export const B3: React.FC = () => {
 };
 
 // ---------------- B4 诗集插图被画上胡子 / 笑作一团 ----------------
+/** 诗集插图上的涂鸦：笔尖严格沿着画出来的线走。先画胡子（左撇、右撇），抬笔，再画两个眼镜圈 */
+type Cubic = [P, P, P, P];
+const bez = (c: Cubic, u: number): P => {
+  const v = 1 - u;
+  return [
+    v * v * v * c[0][0] + 3 * v * v * u * c[1][0] + 3 * v * u * u * c[2][0] + u * u * u * c[3][0],
+    v * v * v * c[0][1] + 3 * v * v * u * c[1][1] + 3 * v * u * u * c[2][1] + u * u * u * c[3][1],
+  ];
+};
+const STACHE: Cubic[] = [
+  [[700, 488], [680, 470], [650, 476], [652, 496]],
+  [[652, 496], [654, 510], [672, 506], [668, 494]],
+  [[700, 488], [720, 470], [750, 476], [748, 496]],
+  [[748, 496], [746, 510], [728, 506], [732, 494]],
+];
+const BOOK_T = { stache: [58.25, 59.0], g1: [59.15, 59.5], g2: [59.55, 59.9] } as const;
+const GLASS = [{ x: 676, y: 444 }, { x: 726, y: 444 }];
+const circleAt = (c: { x: number; y: number }, k: number): P => [c.x + 20 * Math.cos(k * Math.PI * 2), c.y + 20 * Math.sin(k * Math.PI * 2)];
+const bookTip = (t: number): { p: P; lift: number } => {
+  const [s0, s1] = BOOK_T.stache;
+  if (t <= s1) {
+    // 两撇胡子之间（画完左撇回到中间）抬一下笔
+    const k = clamp((t - s0) / (s1 - s0));
+    const half = k < 0.5 ? 0 : 1;
+    const u = (k - half * 0.5) * 2; // 0..1：这一撇的进度
+    const seg = STACHE[half * 2 + (u < 0.5 ? 0 : 1)];
+    const p = bez(seg, u < 0.5 ? u * 2 : u * 2 - 1);
+    const lift = half === 1 && u < 0.12 ? Math.sin((u / 0.12) * Math.PI) * 0.7 : 0;
+    return { p, lift };
+  }
+  if (t < BOOK_T.g1[0]) {
+    const k = (t - s1) / (BOOK_T.g1[0] - s1);
+    const a = STACHE[3][3];
+    const b = circleAt(GLASS[0], 0);
+    return { p: [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k], lift: Math.sin(Math.PI * k) };
+  }
+  if (t <= BOOK_T.g1[1]) return { p: circleAt(GLASS[0], clamp((t - BOOK_T.g1[0]) / (BOOK_T.g1[1] - BOOK_T.g1[0]))), lift: 0 };
+  if (t < BOOK_T.g2[0]) {
+    const k = (t - BOOK_T.g1[1]) / (BOOK_T.g2[0] - BOOK_T.g1[1]);
+    const a = circleAt(GLASS[0], 1);
+    const b = circleAt(GLASS[1], 0);
+    return { p: [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k], lift: Math.sin(Math.PI * k) * 0.6 };
+  }
+  return { p: circleAt(GLASS[1], clamp((t - BOOK_T.g2[0]) / (BOOK_T.g2[1] - BOOK_T.g2[0]))), lift: t > BOOK_T.g2[1] ? 0.3 : 0 };
+};
+const BOOK_ELBOW: P = [1300, 1250];
+const BOOK_OFF: P = [1500, 1400];
+
 const BookPage: React.FC<{ t: number }> = ({ t }) => {
-  const doodle = clamp((t - 58.25) / 1.3);
-  const glasses = clamp((t - 58.9) / 0.9);
+  const doodle = clamp((t - BOOK_T.stache[0]) / (BOOK_T.stache[1] - BOOK_T.stache[0]));
+  const g1 = clamp((t - BOOK_T.g1[0]) / (BOOK_T.g1[1] - BOOK_T.g1[0]));
+  const g2 = clamp((t - BOOK_T.g2[0]) / (BOOK_T.g2[1] - BOOK_T.g2[0]));
   const drift = track(t, [[57.7, 0], [60.0, 1, E.drift]]);
-  const pen: P = doodle < 1 ? [760 + doodle * 120, 520 + Math.sin(doodle * 9) * 18] : [720 + glasses * 160, 440];
+  // 手从右下伸进来，落到胡子的起笔处
+  const enter = easeIO(clamp((t - (BOOK_T.stache[0] - 0.5)) / 0.5));
+  const tip = bookTip(t);
+  const pen: P = t < BOOK_T.stache[0] ? [BOOK_OFF[0] + (STACHE[0][0][0] - BOOK_OFF[0]) * enter, BOOK_OFF[1] + (STACHE[0][0][1] - BOOK_OFF[1]) * enter] : tip.p;
+  const lift = t < BOOK_T.stache[0] ? 1 - enter : tip.lift;
   return (
     <AbsoluteFill style={{ background: "#c9a86e" }}>
       <svg width={1920} height={1080}>
@@ -294,8 +447,8 @@ const BookPage: React.FC<{ t: number }> = ({ t }) => {
           {/* 她用铅笔加上去的小胡子和圆眼镜 */}
           <g stroke="#6b4a3a" strokeWidth={5} fill="none" strokeLinecap="round">
             <path d="M700,488 C680,470 650,476 652,496 C654,510 672,506 668,494 M700,488 C720,470 750,476 748,496 C746,510 728,506 732,494" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - doodle} />
-            <circle cx={676} cy={444} r={20} pathLength={1} strokeDasharray={1} strokeDashoffset={1 - clamp(glasses * 2)} />
-            <circle cx={726} cy={444} r={20} pathLength={1} strokeDasharray={1} strokeDashoffset={1 - clamp(glasses * 2 - 1)} />
+            <circle cx={676} cy={444} r={20} pathLength={1} strokeDasharray={1} strokeDashoffset={1 - g1} />
+            <circle cx={726} cy={444} r={20} pathLength={1} strokeDasharray={1} strokeDashoffset={1 - g2} />
           </g>
           {/* 右页：杜牧《赤壁》 */}
           <g fontFamily={BOOK_FONT} fill="#3a342c">
@@ -307,7 +460,7 @@ const BookPage: React.FC<{ t: number }> = ({ t }) => {
               </text>
             ))}
           </g>
-          <PencilHand x={pen[0]} y={pen[1]} angle={8} scale={1.05} skin="#e6c9ad" sleeve="#e6c98f" line={C.memSepia} />
+          <WriteHand who="her" tip={pen} lift={lift} elbow={BOOK_ELBOW} />
         </g>
       </svg>
       <MemoryPaper />
@@ -350,7 +503,7 @@ const LapBook: React.FC = () => (
 export const B4: React.FC = () => {
   const t = useSongT("B4");
   if (t < 60.0) return <BookPage t={t} />;
-  const cam: Cam = { x: 935, y: 520, scale: track(t, [[60, 1.42], [64.2, 1.48, E.drift]]) };
+  const cam: Cam = { x: 935, y: 485, scale: track(t, [[60, 1.42], [64.2, 1.48, E.drift]]) };
   const { man, her } = laughPoses(t);
   return (
     <AbsoluteFill>
@@ -366,9 +519,22 @@ const DROPS = Array.from({ length: 46 }, (_, i) => {
   return { x: r() * 1920, y: r() * 1080, t0: 64.35 + Math.pow(r(), 0.8) * 2.2, rmax: 120 + r() * 260, grow: 0.9 + r() * 0.8 };
 });
 
+/** 每一帧的遮罩图（内联 SVG）：解码完成之前不出帧，避免遮罩晚一帧生效 */
+const useDecodedImage = (url: string) => {
+  React.useLayoutEffect(() => {
+    const handle = delayRender("B5 湿痕遮罩");
+    const img = new Image();
+    img.src = url;
+    img
+      .decode()
+      .then(() => continueRender(handle))
+      .catch(() => continueRender(handle));
+  }, [url]);
+};
+
 export const B5: React.FC = () => {
   const t = useSongT("B5");
-  const cam: Cam = { x: 935, y: 520, scale: track(t, [[64.2, 1.48], [67.29, 1.5, E.drift]]) };
+  const cam: Cam = { x: 935, y: 485, scale: track(t, [[64.2, 1.48], [67.29, 1.5, E.drift]]) };
   const calm = clamp((65.2 - t) / 1.0);
   const { man, her } = laughPoses(64.2 + (t - 64.2) * 0.3, calm);
   const drain = clamp((t - 64.5) / 2.3);
@@ -377,39 +543,47 @@ export const B5: React.FC = () => {
     if (age <= 0) return 0;
     return d.rmax * (1 - Math.exp(-age * d.grow * 1.6));
   };
+  const wet = DROPS.map((d) => ({ ...d, r: radius(d) })).filter((d) => d.r > 1);
+  // 湿痕遮罩：白色 = 回忆纸还在，洞 = 被雨水浸透、透出下面雨夜的地方（洞里留一点纸，像湿透的半透明纸）
+  const holes = wet.map((d) => `<circle cx="${d.x.toFixed(1)}" cy="${d.y.toFixed(1)}" r="${d.r.toFixed(1)}"/>`).join("");
+  const maskSvg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080">` +
+    `<defs><filter id="e" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="77"/>` +
+    `<feDisplacementMap in="SourceGraphic" scale="60" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="5"/></filter>` +
+    `<mask id="m"><rect width="1920" height="1080" fill="#fff"/><g filter="url(#e)" fill="#1f1f1f">${holes}</g></mask></defs>` +
+    `<rect width="1920" height="1080" fill="#fff" mask="url(#m)"/></svg>`;
+  const maskUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(maskSvg)}`;
+  useDecodedImage(maskUrl);
   // 最后 0.6 s 整层淡出，露出下面垫着的试片 S1 第一帧
   const out = clamp((t - 66.65) / 0.62);
+  const maskStyle: React.CSSProperties = { WebkitMaskImage: `url("${maskUrl}")`, maskImage: `url("${maskUrl}")`, WebkitMaskSize: "100% 100%", maskSize: "100% 100%" };
   return (
     <AbsoluteFill style={{ opacity: 1 - out }}>
-      <AbsoluteFill style={{ filter: `saturate(${1 - drain * 0.75}) brightness(${1 - drain * 0.25})` }}>
+      <AbsoluteFill style={{ ...maskStyle, filter: `saturate(${1 - drain * 0.75}) brightness(${1 - drain * 0.25})` }}>
         {summerWorld(cam, t, man, her, <LapBook />)}
         <MemoryPaper />
       </AbsoluteFill>
-      {/* 雨点浸透纸面：被打湿的地方透出底下雨夜的颜色（S1 开场是对焦前的虚影，接近这片暗青灰） */}
       <svg width={1920} height={1080} style={{ position: "absolute", left: 0, top: 0 }}>
         <defs>
           <filter id="soakEdge" x="-20%" y="-20%" width="140%" height="140%">
             <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves={3} seed={77} result="n" />
             <feDisplacementMap in="SourceGraphic" in2="n" scale={60} xChannelSelector="R" yChannelSelector="G" />
+            <feGaussianBlur stdDeviation={2.5} />
           </filter>
-          <radialGradient id="wetFill" gradientUnits="userSpaceOnUse" cx={1250} cy={300} r={1300}>
-            <stop offset="0" stopColor="#5b6866" />
-            <stop offset="0.35" stopColor="#3b4749" />
-            <stop offset="1" stopColor="#1f282f" />
-          </radialGradient>
         </defs>
-        <g filter="url(#soakEdge)">
-          {DROPS.map((d, i) => {
-            const r = radius(d);
-            return r > 1 ? <circle key={i} cx={d.x} cy={d.y} r={r} fill="url(#wetFill)" /> : null;
-          })}
+        {/* 水渍边缘：颜料被水推到边上，积成一圈深一点的棕褐色（水彩的晕边） */}
+        <g filter="url(#soakEdge)" opacity={1 - drain * 0.5}>
+          {wet.map((d, i) => (
+            <circle key={i} cx={d.x} cy={d.y} r={d.r + 3} fill="none" stroke="#5e4c39" strokeWidth={9} opacity={0.32} />
+          ))}
         </g>
-        <g filter="url(#soakEdge)">
-          {DROPS.map((d, i) => {
-            const r = radius(d);
-            return r > 1 ? <circle key={i} cx={d.x} cy={d.y} r={r + 8} fill="none" stroke="#4e4436" strokeWidth={12} opacity={0.3 * (1 - drain * 0.6)} /> : null;
-          })}
-        </g>
+        {/* 雨点打在纸上的一瞬：小小的亮点溅开 */}
+        {DROPS.map((d, i) => {
+          const age = t - d.t0;
+          if (age < 0 || age > 0.3) return null;
+          const k = age / 0.3;
+          return <circle key={`s${i}`} cx={d.x} cy={d.y} r={6 + k * 22} fill="none" stroke="#efe6d2" strokeWidth={3 * (1 - k)} opacity={0.7 * (1 - k)} />;
+        })}
       </svg>
     </AbsoluteFill>
   );

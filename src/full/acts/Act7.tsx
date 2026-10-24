@@ -12,7 +12,7 @@ import { useSongT } from "../useSongT";
 import { FxCanvas } from "../../fx/FxCanvas";
 import { drawShapesCanvas } from "../../fx/shapesCanvas";
 import { drawFlight, Flight } from "../../fx/petals";
-import { womanPoseS2, S2_T } from "../../shots/S2Leaving";
+import { womanPoseS2, S2_T, s2Walk, turnFade } from "../../shots/S2Leaving";
 import { C } from "../../config/palette";
 import { Bloom } from "./shared";
 
@@ -27,7 +27,8 @@ import { Bloom } from "./shared";
 const SEAT_Y = STOP.seatY - 8;
 const K = STOP.figScale;
 /** 他腿上的花束：花头朝向空位 */
-export const BOUQUET_HIS = { x: STOP.manX + 4, y: SEAT_Y - 4, rot: -8, scale: 0.74, front: "over" as const };
+/** 他腿上的花束：花茎从他右手（画面左边那只）里穿过，手指从上面握住 */
+export const BOUQUET_HIS = { x: STOP.manX - 38, y: SEAT_Y - 4, rot: -8, scale: 0.74, front: "over" as const, grip: "L" as const };
 
 export const manAlone = (t: number, head: Partial<FrontPose["head"]>, extra: Partial<FrontPose> = {}): FrontPose => ({
   ...FRONT_NEUTRAL,
@@ -35,7 +36,7 @@ export const manAlone = (t: number, head: Partial<FrontPose["head"]>, extra: Par
   slump: 0.55,
   bodyTurn: 0.08,
   // 两只手拢着腿上的花束
-  handL: { at: [-74, -34], fore: 0.5, angle: 30, curl: 0.6 },
+  handL: { at: [-74, -34], fore: 0.5, angle: 30, curl: 0.85 },
   handR: { at: [40, -52], fore: 0.5, angle: -20, curl: 0.5 },
   breathe: 0.5 + 0.5 * Math.sin(t * 1.7),
   ...extra,
@@ -46,7 +47,7 @@ export const F2: React.FC = () => {
   const t = useSongT("F2");
   const look = track(t, [[176.3, 0], [177.7, 1, E.inOut]]);
   const reach = track(t, [[178.5, 0], [179.5, 1, E.inOut], [180.3, 1], [180.9, 0.85, E.out]]);
-  const cam: Cam = { x: track(t, [[174.7, 975], [180.95, 990, E.drift]]), y: 560, scale: track(t, [[174.7, 1.16], [180.95, 1.22, E.drift]]) };
+  const cam: Cam = { x: track(t, [[174.7, 975], [180.95, 990, E.drift]]), y: 520, scale: track(t, [[174.7, 1.16], [180.95, 1.22, E.drift]]) };
   const man = manAlone(
     t,
     {
@@ -78,15 +79,17 @@ const HerSketch: React.FC<{ t: number; cam: Cam }> = ({ t, cam }) => {
   const vanish = track(t, [[185.9, 0], [187.0, 1, E.inOut]]);
   const draw = useCallback(
     (ctx: CanvasRenderingContext2D) => {
-      const a = appear * (1 - vanish);
-      if (a <= 0.01) return;
+      const a0 = appear * (1 - vanish);
+      if (a0 <= 0.01) return;
       applyCam(ctx, cam);
-      const walking = st >= S2_T.turn[1];
+      // 转身：正面草稿和侧身草稿交叉淡化（与 S2 同一时刻）
+      const fFront = turnFade(st);
       const passes = [
         { dx: 0, dy: 0, la: 0.85, fa: 0.16, lw: 2.4 },
         { dx: 1.6, dy: -1.2, la: 0.3, fa: 0, lw: 1.4 },
       ];
-      if (!walking) {
+      if (fFront > 0.001) {
+        const a = a0 * fFront;
         const pose = womanPoseS2(st);
         const shapes = frontShapes(pose, WOMAN_MEM);
         const sx = track(st, [[S2_T.turn[0], 1], [S2_T.turn[1], 0.66, E.in]]);
@@ -98,15 +101,13 @@ const HerSketch: React.FC<{ t: number; cam: Cam }> = ({ t, cam }) => {
           drawShapesCanvas(ctx, shapes, { x: STOP.womanX + p.dx, y: SEAT_Y + p.dy, scale: K }, { fillAlpha: p.fa * a, lineAlpha: p.la * a, line: C.memSepia, lw: p.lw, linesOnly: p.fa === 0 });
           ctx.restore();
         }
-      } else {
-        const walkT = Math.max(0, st - S2_T.turn[1]);
-        const v = 760;
-        const acc = 0.55;
-        const dist = walkT < acc ? (0.5 * v * walkT * walkT) / acc : 0.5 * v * acc + v * (walkT - acc);
-        const phase = (dist / 380) * Math.PI;
-        const x = STOP.womanX + 6 + dist;
+      }
+      if (fFront < 0.999) {
+        const a = a0 * (1 - fFront);
+        const w = s2Walk(st);
+        const x = w.x;
         const groundY = SEAT_Y + 262 * K;
-        const shapes = walkShapes(phase, WOMAN_MEM, Math.min(1, 0.35 + walkT * 1.5));
+        const shapes = walkShapes(w.phase, WOMAN_MEM, w.stride);
         for (const p of passes) {
           drawShapesCanvas(ctx, shapes, { x: x + p.dx, y: groundY + p.dy, scale: K }, { fillAlpha: p.fa * a, lineAlpha: p.la * a, line: C.memSepia, lw: p.lw, linesOnly: p.fa === 0 });
         }
@@ -120,7 +121,7 @@ const HerSketch: React.FC<{ t: number; cam: Cam }> = ({ t, cam }) => {
 export const F3: React.FC = () => {
   const t = useSongT("F3");
   const st = s2Time(t);
-  const cam: Cam = { x: track(t, [[180.95, 1010], [187.45, 1030, E.drift]]), y: 556, scale: track(t, [[180.95, 1.24], [187.45, 1.28, E.drift]]) };
+  const cam: Cam = { x: track(t, [[180.95, 1010], [187.45, 1030, E.drift]]), y: 520, scale: track(t, [[180.95, 1.24], [187.45, 1.28, E.drift]]) };
   // 他看着草稿：她起身时抬头，离开时目光追到右边，最后落回空位
   const up = track(st, [[S2_T.rise[0], 0], [S2_T.rise[1], 1, E.inOut]]);
   const follow = track(st, [[S2_T.walk[0], 0], [S2_T.walk[1], 1, E.inOut]]);
@@ -166,23 +167,30 @@ export const F4_END_CAM: Cam = { x: LAMP.x, y: LAMP.y, scale: 3.4 };
 export const F4: React.FC = () => {
   const t = useSongT("F4");
   const close = track(t, [[187.9, 0], [188.7, 1, E.inOut]]);
+  const gather = track(t, [[187.6, 0], [188.5, 1, E.inOut]]);
   const lift = track(t, [[188.8, 0], [190.4, 1, E.inOut]]);
   const push = track(t, [[189.6, 0], [193.86, 1, E.in]]);
-  const c0: Cam = { x: 1000, y: 556, scale: 1.24 };
+  const c0: Cam = { x: 1000, y: 520, scale: 1.24 };
   // 推镜：先缓后快，落到灯头上
   const cam: Cam = { x: lerp(c0.x, F4_END_CAM.x, push), y: lerp(c0.y, F4_END_CAM.y, push), scale: c0.scale * Math.pow(F4_END_CAM.scale / c0.scale, push) };
   const bloom = track(t, [[192.3, 0], [193.86, 1, E.in]]);
   const man = manAlone(
     t,
     {
-      turn: lerp(0.35, 0.12, close),
-      pitch: lerp(0.45, -0.08, lift),
+      // 开头接 F3 结尾：头还转向空位
+      turn: lerp(0.57, 0.12, close),
+      pitch: lerp(lerp(0.35, 0.45, close), -0.08, lift),
       eyeOpen: lerp(0.55, 0.04, close),
-      gaze: 0.2,
+      gaze: lerp(0.6, 0.2, close),
       brow: lerp(0.55, 0.3, lift),
       mouth: lerp(-0.25, -0.05, lift),
     },
-    { slump: lerp(0.6, 0.35, lift) }
+    {
+      slump: lerp(lerp(0.55, 0.6, close), 0.35, lift),
+      bodyTurn: lerp(0.2, 0.08, close),
+      // 右手从空位的座面上收回来，拢住怀里的花束
+      handR: { at: [lerp(120, 40, gather), lerp(-12, -52, gather)], fore: lerp(1, 0.5, gather), angle: lerp(-4, -20, gather), curl: lerp(0.7, 0.5, gather) },
+    }
   );
   const drawPetals = useCallback(
     (ctx: CanvasRenderingContext2D) => {

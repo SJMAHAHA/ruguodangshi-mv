@@ -1,10 +1,10 @@
 import React, { useCallback } from "react";
 import { AbsoluteFill } from "remotion";
-import { E, track, lerp, clamp } from "../../lib/anim";
+import { E, track, clamp } from "../../lib/anim";
 import { Cam, WorldSvg } from "../../lib/camera";
 import { useSongT } from "../useSongT";
 import { PencilDefs } from "../../draw/Defs";
-import { WalkFigure } from "../../characters/walk";
+import { WalkFigure, gaitPhase, walkBob } from "../../characters/walk";
 import { MAN, MAN_MEM, WOMAN_MEM } from "../../characters/designs";
 import { Design, FigureFront, FRONT_NEUTRAL, FrontPose } from "../../characters/front";
 import { PointHand } from "../../props/PointHand";
@@ -14,8 +14,9 @@ import { HAND_FONT } from "../../ui/fonts";
 import { PaperOverlay } from "../../draw/Paper";
 import { mulberry32 } from "../../lib/random";
 import { P, smoothClosed, smoothOpen } from "../../lib/geom";
-import { AlleyBackdrop, Tod } from "../../env/Alley";
-import { TOD_GRADE } from "../../env/BusStop";
+import { Tod } from "../../env/Alley";
+import { AlleyPlate, SvgImage } from "../../env/Plate";
+import { Glyph, tipOnLine, glyphEnds, wristTurn } from "../../lib/writing";
 
 /**
  * 第六幕「回忆 2」E1–E4（2:22.4–2:48.45），以及 F1（雨水冲掉玻璃上的字）
@@ -56,6 +57,20 @@ const SUN_SEGS = (() => {
   }
   return out;
 })();
+
+/** E1 背景板在世界坐标里的范围（覆盖整段跟拍） */
+export const E1_RECT = { x: 380, y: -1020, w: 3800, h: 1160 };
+
+/** E1 晴天的墙和地面原来的 SVG（背景板的参考底稿） */
+export const SunStreetSvg: React.FC = () => (
+  <g>
+    <g filter="url(#pencil-soft)">
+      <SunWall />
+    </g>
+    <rect x={-2000} y={0} width={9000} height={800} fill="#c2ad88" />
+    <rect x={-2000} y={0} width={9000} height={10} fill="#9a8664" opacity={0.6} />
+  </g>
+);
 
 const SunWall: React.FC = () => (
   <g>
@@ -137,9 +152,10 @@ export const E1: React.FC = () => {
   const t = useSongT("E1");
   const SPEED_E = 280;
   const FIG_E = 0.62;
-  const STEP_E = 108 * (FIG_E / 0.55);
   const d = (t - 142.4) * SPEED_E;
-  const phase = (d / STEP_E) * Math.PI;
+  // 两个人并肩同速，但各自的步幅不同：相位分别由各自的步幅换算，脚都不打滑
+  const phase = gaitPhase(d, SH_M, FIG_E);
+  const phaseW = gaitPhase(d, SH_W, FIG_E * 0.97) + 0.5;
   const baseX = 1400 + d;
   const k = 1.0;
   const cam: Cam = { x: baseX + 40, y: -440, scale: k };
@@ -149,8 +165,8 @@ export const E1: React.FC = () => {
   const SHX = 170; // 影子投在墙上相对人的偏移（阳光从左后方来）
   const mx = baseX;
   const wx = baseX - 190;
-  const bobM = -Math.abs(Math.cos(phase)) * 8;
-  const bobW = -Math.abs(Math.cos(phase + 0.5)) * 8;
+  const bobM = walkBob(phase);
+  const bobW = walkBob(phaseW);
   const earM: P = [mx + 6 * FIG_E, (-986 + bobM) * FIG_E];
   const earW: P = [wx + 10 * FIG_E, (-914 + bobW) * FIG_E - hop];
   const sag = (-730 + hopLag) * FIG_E;
@@ -158,16 +174,13 @@ export const E1: React.FC = () => {
     <AbsoluteFill style={{ background: "#d8c7a1" }}>
       <WorldSvg cam={cam}>
         <PencilDefs />
-        <g filter="url(#pencil-soft)">
-          <SunWall />
-        </g>
-        <rect x={-2000} y={0} width={9000} height={800} fill="#c2ad88" />
-        <rect x={-2000} y={0} width={9000} height={10} fill="#9a8664" opacity={0.6} />
+        {/* 晴天的墙和地面：Seedream 背景板（参考底稿是 SunStreetSvg）；树影、人影由代码画 */}
+        <SvgImage src="plates/e1_sunwall.jpg" rect={E1_RECT} />
         <LeafDapple t={t} x0={cam.x - 960} x1={cam.x + 960} />
         {/* 影子：同一种暖褐色，乘在墙上，边缘略虚 */}
         <g style={{ mixBlendMode: "multiply" }} opacity={0.4} filter="url(#soft-blur-6)">
           <g transform={`translate(${SHX},0) skewX(-16) scale(1,1.1)`}>
-            <WalkFigure phase={phase + 0.5} design={SH_W} x={wx} y={-hop} scale={FIG_E * 0.97} />
+            <WalkFigure phase={phaseW} design={SH_W} x={wx} y={-hop} scale={FIG_E * 0.97} />
             <WalkFigure phase={phase} design={SH_M} x={mx} y={0} scale={FIG_E} />
             <path d={`M${earM[0]},${earM[1]} C${earM[0] - 10},${sag} ${earW[0] + 30},${sag} ${earW[0]},${earW[1]}`} stroke="#000" strokeWidth={5} fill="none" />
           </g>
@@ -185,16 +198,25 @@ const HER_TEXT: GlassText = { text: "执子之手", x: 420, y: 430, size: 150, t
 const HIS_TEXT: GlassText = { text: "与子偕老", x: 640, y: 690, size: 150, t0: 156.0, per: 0.9 };
 
 const charReveal = (L: GlassText, i: number, t: number) => clamp((t - (L.t0 + i * L.per)) / (L.per * 0.85));
-const penAt = (L: GlassText, t: number): [number, number] | null => {
-  for (let i = 0; i < L.text.length; i++) {
-    const r = charReveal(L, i, t);
-    if (r > 0 && r < 1) {
-      // 指尖在字里来回描画（从上到下、左右往返）
-      const a = r * Math.PI * 5;
-      return [L.x + i * L.size + L.size * (0.5 + 0.32 * Math.sin(a)), L.y - L.size * 0.85 + L.size * 0.9 * r];
-    }
-  }
-  return null;
+/** 雾上的字拆成字框：指尖按笔顺从上往下写，和字从上往下显出的前沿对齐（见 lib/writing） */
+const glassGlyphs = (L: GlassText): Glyph[] =>
+  L.text.split("").map((_, i) => ({ x: L.x + i * L.size, top: L.y - L.size * 1.05, w: L.size, h: L.size * 1.3, t0: L.t0 + i * L.per, dur: L.per * 0.85, seed: 8300 + Math.round(L.x) + i }));
+/** 指尖的位置和抬起程度；写之前停在第一笔起点，写完停在最后一笔终点 */
+const fingerAt = (L: GlassText, t: number): { p: P; lift: number } => {
+  const gs = glassGlyphs(L);
+  const on = tipOnLine(gs, t);
+  if (on) return on;
+  if (t < gs[0].t0) return { p: glyphEnds(gs[0]).start, lift: 1 };
+  return { p: glyphEnds(gs[gs.length - 1]).end, lift: 0.6 };
+};
+
+/** 写雾字的手：指尖在 tip；angle 是手的基本朝向，手腕再绕画面外的肘部转一点；手指抬起时手稍微离开玻璃（变大） */
+const FogFinger: React.FC<{ tip: P; lift: number; enter: number; from: P; angle: number; elbow: P; scale: number; sprite: string }> = ({ tip, lift, enter, from, angle, elbow, scale, sprite }) => {
+  const x = from[0] + (tip[0] - from[0]) * enter;
+  const y = from[1] + (tip[1] - from[1]) * enter;
+  // 贴图本身手指朝上、手臂朝下（90°），旋转 angle 之后手臂方向是 90 + angle
+  const turn = wristTurn([x, y], elbow, 90 + angle, 0.3);
+  return <PointHand x={x - 3 * lift} y={y - 4 * lift} angle={angle + turn} scale={scale * (1 + 0.04 * lift)} sprite={sprite} />;
 };
 
 /** 写在雾上的字：作为遮罩，在雾里擦出清晰的笔画（逐字从上往下显出） */
@@ -306,11 +328,8 @@ const FogGlass: React.FC<{
 
 /** 玻璃后面的街（就是候车亭对面那条旧街），完全失焦 */
 const StreetBehind: React.FC<{ tod: Tod; blur: number }> = ({ tod, blur }) => (
-  <AbsoluteFill style={{ filter: `blur(${blur}px) ${tod === "day" ? TOD_GRADE.day : ""}`, background: tod === "day" ? "#b9b29f" : "#151c22" }}>
-    <WorldSvg cam={{ x: 1180, y: 520, scale: 1.3 }}>
-      <PencilDefs />
-      <AlleyBackdrop tod={tod} lampGlow={tod === "night" ? 1 : 0} />
-    </WorldSvg>
+  <AbsoluteFill style={{ filter: `blur(${blur}px)`, background: tod === "day" ? "#b9b29f" : "#151c22" }}>
+    <AlleyPlate cam={{ x: 1180, y: 520, scale: 1.3 }} tod={tod} lampGlow={tod === "night" ? 1 : 0} />
   </AbsoluteFill>
 );
 
@@ -330,7 +349,7 @@ const ReflectedFace: React.FC<{ id: string; d: Design; x: number; y: number; s: 
   bodyTurn = 0,
 }) => {
   if (op <= 0.003) return null;
-  const hy = d.sex === "f" ? -398 : -424;
+  const hy = d.sex === "f" ? -438 : -454;
   const pose: FrontPose = { ...FRONT_NEUTRAL, head: { turn, pitch, eyeOpen: eye, gaze: turn * 0.6, brow: 0.1, mouth }, headTilt: tilt, bodyTurn, handL: { at: [-60, 40], fore: 0.6 }, handR: { at: [60, 40], fore: 0.6 } };
   const box = { x: x - 240 * s, y: y - 120 * s, w: 480 * s, h: 420 * s };
   return (
@@ -355,9 +374,8 @@ const ReflectedFace: React.FC<{ id: string; d: Design; x: number; y: number; s: 
 
 export const E2: React.FC = () => {
   const t = useSongT("E2");
-  const pen = penAt(HER_TEXT, t);
+  const f = fingerAt(HER_TEXT, t);
   const enter = track(t, [[148.4, 0], [149.2, 1, E.out], [153.6, 1], [154.6, 0, E.in]]);
-  const p = pen ?? [HER_TEXT.x + 4 * HER_TEXT.size - 30, HER_TEXT.y + 10];
   const cam = track(t, [[148.35, 1.0], [155.1, 1.04, E.drift]]);
   return (
     <AbsoluteFill style={{ transform: `scale(${cam})` }}>
@@ -373,9 +391,8 @@ export const E2: React.FC = () => {
         front={
           <svg width={1920} height={1080} style={{ position: "absolute" }}>
             <PencilDefs />
-            <g filter="url(#pencil-soft)">
-              <PointHand x={lerp(p[0] + 520, p[0], enter)} y={lerp(p[1] + 760, p[1], enter)} angle={-24} scale={1.0} skin={WOMAN_MEM.look.skin} skinShade={WOMAN_MEM.look.skinShade} sleeve={WOMAN_MEM.coat} line={WOMAN_MEM.line} />
-            </g>
+            {/* 她的右手从右下伸进来 */}
+            <FogFinger tip={f.p} lift={f.lift} enter={enter} from={[f.p[0] + 520, f.p[1] + 760]} angle={-24} elbow={[HER_TEXT.x + 2 * HER_TEXT.size + 560, 1500]} scale={1.0} sprite="plates/hand_point-her.png" />
           </svg>
         }
       />
@@ -386,9 +403,8 @@ export const E2: React.FC = () => {
 
 export const E3: React.FC = () => {
   const t = useSongT("E3");
-  const pen = penAt(HIS_TEXT, t);
+  const f = fingerAt(HIS_TEXT, t);
   const enter = track(t, [[155.2, 0], [155.9, 1, E.out], [159.3, 1], [160.1, 0, E.in]]);
-  const p = pen ?? [HIS_TEXT.x + 4 * HIS_TEXT.size - 30, HIS_TEXT.y + 10];
   const refl = track(t, [[159.2, 0], [160.4, 1, E.inOut]]);
   const lean = track(t, [[160.0, 0], [161.2, 1, E.inOut]]);
   const laugh = track(t, [[160.3, 0], [160.8, 1, E.out]]);
@@ -413,9 +429,8 @@ export const E3: React.FC = () => {
         front={
           <svg width={1920} height={1080} style={{ position: "absolute" }}>
             <PencilDefs />
-            <g filter="url(#pencil-soft)">
-              <PointHand x={lerp(p[0] - 620, p[0], enter)} y={lerp(p[1] + 760, p[1], enter)} angle={20} scale={1.1} skin={MAN_MEM.look.skin} skinShade={MAN_MEM.look.skinShade} sleeve={MAN_MEM.coat} line={MAN_MEM.line} flip />
-            </g>
+            {/* 他的右手从左下伸进来（贴图本来就是右手，不能镜像，镜像会变成左手） */}
+            <FogFinger tip={f.p} lift={f.lift} enter={enter} from={[f.p[0] - 620, f.p[1] + 760]} angle={20} elbow={[HIS_TEXT.x + 2 * HIS_TEXT.size - 600, 1500]} scale={1.1} sprite="plates/hand_point-him.png" />
           </svg>
         }
       />

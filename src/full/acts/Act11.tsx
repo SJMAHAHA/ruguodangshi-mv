@@ -5,6 +5,7 @@ import { FRONT_NEUTRAL } from "../../characters/front";
 import { E, track, clamp } from "../../lib/anim";
 import { Cam } from "../../lib/camera";
 import { useSongT } from "../useSongT";
+import { WorldImg } from "../../env/Plate";
 import { FxCanvas } from "../../fx/FxCanvas";
 import { drawPetal } from "../../fx/petals";
 import { C } from "../../config/palette";
@@ -100,34 +101,13 @@ export const K1: React.FC = () => {
   return <EmptyBench t={t} cam={cam} bus={bus} sweep={sweep} />;
 };
 
-/** 把渲染好的画面变成纸上的铅笔稿：灰度 → Sobel 边缘 → 反相成深色线 + 很淡的明暗 → 乘在纸色上 */
-const SketchFilter: React.FC = () => (
-  <svg width={0} height={0} style={{ position: "absolute" }}>
-    <defs>
-      <filter id="k2sketch" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
-        <feColorMatrix in="SourceGraphic" type="saturate" values="0" result="g" />
-        <feConvolveMatrix in="g" order="3" kernelMatrix="-1 0 1 -2 0 2 -1 0 1" preserveAlpha="true" result="gx1" />
-        <feConvolveMatrix in="g" order="3" kernelMatrix="1 0 -1 2 0 -2 1 0 -1" preserveAlpha="true" result="gx2" />
-        <feConvolveMatrix in="g" order="3" kernelMatrix="-1 -2 -1 0 0 0 1 2 1" preserveAlpha="true" result="gy1" />
-        <feConvolveMatrix in="g" order="3" kernelMatrix="1 2 1 0 0 0 -1 -2 -1" preserveAlpha="true" result="gy2" />
-        <feComposite in="gx1" in2="gx2" operator="arithmetic" k2={1} k3={1} result="gx" />
-        <feComposite in="gy1" in2="gy2" operator="arithmetic" k2={1} k3={1} result="gy" />
-        <feComposite in="gx" in2="gy" operator="arithmetic" k2={1} k3={1} result="e" />
-        <feColorMatrix in="e" type="matrix" values="-2.3 0 0 0 1  -2.3 0 0 0 1  -2.3 0 0 0 1  0 0 0 0 1" result="lines0" />
-        {/* 线条最深只到石墨灰，不是纯黑 */}
-        <feComponentTransfer in="lines0" result="lines">
-          <feFuncR type="linear" slope={0.74} intercept={0.26} />
-          <feFuncG type="linear" slope={0.73} intercept={0.27} />
-          <feFuncB type="linear" slope={0.72} intercept={0.29} />
-        </feComponentTransfer>
-        <feColorMatrix in="g" type="matrix" values="0.42 0 0 0 0.66  0.42 0 0 0 0.66  0.42 0 0 0 0.66  0 0 0 0 1" result="tone" />
-        <feBlend in="lines" in2="tone" mode="multiply" result="sk" />
-        <feFlood floodColor="#e2d9c4" result="paper" />
-        <feBlend in="sk" in2="paper" mode="multiply" />
-      </filter>
-    </defs>
-  </svg>
-);
+/**
+ * 尾声的铅笔稿：Seedream 照着 K2 第一帧（还是彩色）画的一张铅笔素描（public/plates/k2_sketch.jpg）。
+ * 这一帧镜头看到的世界范围就是素描的范围，之后镜头只是缓推，所以素描跟着镜头走，和彩色画面严格对齐。
+ * （原来用 SVG 边缘检测滤镜实时计算，单帧要 25 s 以上。）
+ */
+const K2_CAM0 = sceneAt(306.0);
+const K2_SKETCH_RECT = { x: K2_CAM0.x - 960 / K2_CAM0.scale, y: K2_CAM0.y - 540 / K2_CAM0.scale, w: 1920 / K2_CAM0.scale, h: 1080 / K2_CAM0.scale };
 
 export const K2: React.FC = () => {
   const t = useSongT("K2");
@@ -136,14 +116,13 @@ export const K2: React.FC = () => {
   const toPaper = track(t, [[310.4, 0], [313.4, 1, E.inOut]]);
   return (
     <AbsoluteFill style={{ background: C.warmPaper }}>
-      <SketchFilter />
       {/* 彩色画面 */}
       <AbsoluteFill style={{ opacity: 1 - toSketch }}>
         <EmptyBench t={t} cam={cam} bus={0} sweep={1} />
       </AbsoluteFill>
-      {/* 铅笔稿：同一画面过一遍滤镜 */}
-      <AbsoluteFill style={{ opacity: toSketch * (1 - toPaper), filter: "url(#k2sketch)" }}>
-        <EmptyBench t={t} cam={cam} bus={0} sweep={1} drops={0.25} />
+      {/* 铅笔稿：同一画面的铅笔素描 */}
+      <AbsoluteFill style={{ opacity: toSketch * (1 - toPaper) }}>
+        <WorldImg cam={cam} src="plates/k2_sketch.jpg" rect={K2_SKETCH_RECT} />
       </AbsoluteFill>
       {/* 纸（最后只剩纸） */}
       <AbsoluteFill style={{ opacity: toPaper, background: "#e2d9c4" }} />

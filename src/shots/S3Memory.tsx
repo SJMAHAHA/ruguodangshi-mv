@@ -34,7 +34,7 @@ export const s3Cam = (t: number): Cam => {
   const k = track(t, [[S3_T.toLamp[0], 0], [S3_T.toLamp[1], 1, E.in]]);
   return {
     x: lerp(1010 + track(t, [[17.57, 0], [22.55, 14, E.drift]]), 1390, k),
-    y: lerp(470, 330, k),
+    y: lerp(435, 330, k),
     scale: lerp(track(t, [[17.57, 1.5], [22.55, 1.6, E.drift]]), 1.9, k),
   };
 };

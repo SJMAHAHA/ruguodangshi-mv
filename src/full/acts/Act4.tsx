@@ -3,13 +3,13 @@ import { AbsoluteFill } from "remotion";
 import { E, track, lerp, clamp } from "../../lib/anim";
 import { Cam, WorldSvg } from "../../lib/camera";
 import { useSongT } from "../useSongT";
-import { Defs, Sky, Moon, Skyline, Water, Jetty, Boat, BenchBack } from "../../env/Waterside";
+import { Defs, Moon, Water, Jetty, Boat, BenchBack, RiverBackdrop, RiverSkyClip } from "../../env/Waterside";
 import { PencilDefs } from "../../draw/Defs";
-import { TShapes, FRONT_NEUTRAL, FrontPose } from "../../characters/front";
-import { headShapes } from "../../characters/head";
+import { SvgImage } from "../../env/Plate";
+import { TShapes, FRONT_NEUTRAL, FrontPose, riseHand } from "../../characters/front";
 import { backShapes } from "../../characters/back";
 import { MAN, WOMAN, MAN_MEM, WOMAN_MEM } from "../../characters/designs";
-import { WalkFigure } from "../../characters/walk";
+import { WalkFigure, gait } from "../../characters/walk";
 import { FxCanvas } from "../../fx/FxCanvas";
 import { drawRipples } from "../../fx/rain";
 import { drawPetal } from "../../fx/petals";
@@ -33,12 +33,12 @@ export const C1: React.FC = () => {
   const dropT = 101.35;
   const shatter = clamp((t - dropT) / 2.1);
   const fade = track(t, [[102.4, 1], [103.6, 0, E.in]]);
-  const hs = headShapes({ turn: -0.08, pitch: -0.12, eyeOpen: open, gaze: 0.05, brow: 0.05, mouth: 0.35 + open * 0.15 }, { ...WOMAN_MEM.look, light: -1 });
   const H = 1080;
   const stripH = H / STRIPS;
   const cx = 900;
   const cy = 560;
-  const sc = 3.8;
+  // Seedream 画的两张肖像（垂眼 / 抬眼看他），纯黑底，滤色叠在水面上；随 open 交叉淡化
+  const FACE = { x: cx - 470, y: cy - 545, w: 940, h: 940 };
   const amp = (y: number) => {
     const base = 5 + shatter * 70 * Math.max(0, 1 - Math.abs(y - 560) / 900);
     return Math.sin(y * 0.045 + t * 2.4) * base + Math.sin(y * 0.11 - t * 3.1) * base * 0.4;
@@ -88,8 +88,9 @@ export const C1: React.FC = () => {
             const y = i * stripH + stripH / 2;
             return (
               <g key={i} clipPath={`url(#strip-${i})`}>
-                <g transform={`translate(${cx + amp(y)},${cy}) scale(${sc})`}>
-                  <TShapes shapes={[...hs.back, ...hs.front]} line={C.memSepia} lw={1.2} />
+                <g transform={`translate(${amp(y)},0)`}>
+                  <SvgImage src="plates/c1_face_down.jpg" rect={FACE} />
+                  <SvgImage src="plates/c1_face_up.jpg" rect={FACE} opacity={open} />
                 </g>
               </g>
             );
@@ -143,12 +144,12 @@ export const C2: React.FC = () => {
       <WorldSvg cam={cam}>
         <PencilDefs />
         <Defs />
-        <Sky y0={-800} y1={562} />
-        <Moon x={MOON.x} y={MOON.y} r={MOON.r} glow={1.6} />
-        <g filter="url(#pencil-soft)">
-          <Skyline base={562} x0={-300} x1={2240} seed={7} />
+        <RiverBackdrop />
+        <RiverSkyClip id="c2sky" />
+        <g clipPath="url(#c2sky)">
+          <Moon x={MOON.x} y={MOON.y} r={MOON.r} glow={1.6} />
         </g>
-        <Water y0={560} y1={1260} moonX={MOON.x} t={t} reflW={90} />
+        <Water y0={560} y1={1260} moonX={MOON.x} t={t} reflW={90} bare />
         <ellipse cx={MOON.x} cy={780} rx={240} ry={320} fill="#c2c0aa" opacity={0.12} filter="url(#soft-blur-60)" />
         <Jetty near={[690, 1250, 1262]} far={[886, 1050, 650]} t={t} />
         {/* 船（她坐上去之后一起离开） */}
@@ -174,14 +175,29 @@ export const C2: React.FC = () => {
 // ---------------- C3 初见 ----------------
 export const C3: React.FC = () => {
   const t = useSongT("C3");
-  const cam: Cam = { x: 1020, y: 470, scale: track(t, [[109.75, 0.96], [116.75, 1.0, E.drift]]) };
+  const cam: Cam = { x: 1020, y: 440, scale: track(t, [[109.75, 0.93], [116.75, 0.97, E.drift]]) };
   const SIT_X = 1250;
-  // 她从右边走来 → 转成正面 → 坐下
+  // 她从右边走来（镜头开始时已经在走）→ 减速、双脚并拢停下 → 转成正面 → 坐下
   const walkEnd = 111.2;
-  const walking = t < walkEnd;
-  const wk = clamp((t - 109.75) / (walkEnd - 109.75));
-  const walkX = lerp(2050, SIT_X + 10, 1 - Math.pow(1 - wk, 1.6));
+  const V = 560;
+  const T_CRUISE = 1.24;
+  const T_BRAKE = 0.7;
+  const walkStart = walkEnd - T_CRUISE - T_BRAKE;
+  const g = gait(
+    Math.min(t, walkEnd) - walkStart,
+    (u) => (u < T_CRUISE ? V : V * clamp(1 - (u - T_CRUISE) / T_BRAKE)),
+    (u) => (u < T_CRUISE ? 1 : 0.2 + 0.8 * clamp(1 - (u - T_CRUISE) / T_BRAKE)),
+    WOMAN_MEM,
+    STOP.figScale
+  );
+  const walkX = SIT_X + 10 + (V * T_CRUISE + (V * T_BRAKE) / 2) - g.dist;
+  // 转身：侧面收窄 → 正面从窄变宽（几帧之内完成）
+  const turnSide = track(t, [[walkEnd - 0.14, 1], [walkEnd, 0.62, E.in]]);
+  const turnFront = track(t, [[walkEnd, 0.62], [walkEnd + 0.18, 1, E.out]]);
+  // 坐下 = 起身倒过来：身体下降时前倾、手扶着大腿，坐稳后上身再挺直
   const sit = track(t, [[111.35, 1], [112.3, 0, E.inOut]]);
+  const bend = track(t, [[111.3, 0], [111.7, 0.8, E.inOut], [112.15, 0.55, E.inOut], [112.6, 0, E.inOut]]);
+  const seat = { stand: sit, bend, slump: 0, shoulderLift: 0, legSlant: -0.5 };
   const glance = track(t, [[112.2, 0], [112.8, 1, E.inOut], [113.8, 1], [114.3, 0.3, E.inOut]]);
   const shy = track(t, [[113.6, 0], [114.2, 1, E.inOut]]);
   const her: FrontPose = {
@@ -191,8 +207,9 @@ export const C3: React.FC = () => {
     headTilt: -2 * glance,
     bodyTurn: -0.1,
     legSlant: -0.5,
-    handL: { at: [-40, lerp(-30, -256, sit)], fore: lerp(0.55, 1, sit) },
-    handR: { at: [42, lerp(-30, -256, sit)], fore: lerp(0.55, 1, sit) },
+    bend,
+    handL: riseHand(seat, WOMAN_MEM, -1, [-40, -30]),
+    handR: riseHand(seat, WOMAN_MEM, 1, [42, -30]),
   };
   const man: FrontPose = {
     ...FRONT_NEUTRAL,
@@ -215,13 +232,23 @@ export const C3: React.FC = () => {
           glassDrops={0}
           lampGlow={0}
           man={man}
-          woman={walking ? null : her}
+          woman={t >= walkEnd - 0.06 ? her : null}
+          womanOpacity={track(t, [[walkEnd - 0.06, 0], [walkEnd + 0.08, 1, E.inOut]])}
+          womanOnTop
           manDesign={MAN_MEM}
           womanDesign={WOMAN_MEM}
           manX={790}
           womanX={SIT_X}
           bouquet={null}
-          extraFigures={walking ? <WalkFigure phase={((walkX - 2050) / 380) * Math.PI} design={WOMAN_MEM} x={walkX} y={STOP.seatY - 8 + 262 * STOP.figScale} scale={STOP.figScale} stride={1 - Math.max(0, wk - 0.85) * 4} filter="url(#pencil)" /> : null}
+          womanScaleX={turnFront}
+          extraFigures={
+            t < walkEnd + 0.08 ? (
+              // 侧身画法只有朝右的，往左走时整体镜像
+              <g transform={`translate(${walkX},0) scale(${-turnSide},1) translate(${-walkX},0)`}>
+                <WalkFigure phase={g.phase} design={WOMAN_MEM} x={walkX} y={STOP.seatY - 8 + 262 * STOP.figScale} scale={STOP.figScale} stride={g.stride} filter="url(#pencil)" />
+              </g>
+            ) : null
+          }
         />
         <PaperOverlay memory opacity={0.55} />
         <AbsoluteFill style={{ boxShadow: "inset 0 0 160px rgba(120,90,60,0.35)", pointerEvents: "none" }} />

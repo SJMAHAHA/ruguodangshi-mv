@@ -2,6 +2,8 @@ import React from "react";
 import { C } from "../config/palette";
 import { smoothOpen, P } from "../lib/geom";
 import { seededList } from "../lib/random";
+import { ASSETS } from "../config/assets";
+import { SvgImage } from "./Plate";
 
 /**
  * 公交站对面的灰色旧街（世界坐标：S2 取景即 1920×1080 画面；
@@ -197,7 +199,9 @@ export const AlleyBackdrop: React.FC<{ lampGlow?: number; tod?: Tod }> = ({ lamp
 };
 
 /** 站台结构：后挡玻璃、框架、顶棚、站台地面（世界坐标） */
-export const ShelterFrame: React.FC<{ show: { canopy?: boolean; floor?: boolean } }> = ({ show }) => {
+export const ShelterFrame: React.FC<{ show: { canopy?: boolean; floor?: boolean }; floorLook?: "night" | "day" | "dusk" }> = ({ show, floorLook = "night" }) => {
+  // 水粉地砖：夜里 / 黎明是雨后的湿地砖，回忆里是干燥的暖色地砖，黄昏（雨还没下）是干的阴天地砖
+  const paintedFloor = ASSETS.floor && (floorLook !== "dusk" || ASSETS.floorDusk);
   const glassTop = 108;
   const glassBottom = 852;
   return (
@@ -223,7 +227,11 @@ export const ShelterFrame: React.FC<{ show: { canopy?: boolean; floor?: boolean 
       <polygon points={`420,${glassTop} 640,${glassTop} 260,${glassBottom} 40,${glassBottom}`} fill="#dfe6e0" opacity={0.045} />
       <polygon points={`1220,${glassTop} 1290,${glassTop} 910,${glassBottom} 840,${glassBottom}`} fill="#dfe6e0" opacity={0.035} />
       {/* 站台地面 */}
-      {show.floor !== false && (
+      {show.floor !== false && paintedFloor ? (
+        // 水粉地砖（Codex 画的，见 asset-requests/）
+        <SvgImage src={`plates/floor_${floorLook}.jpg`} rect={{ x: -520, y: glassBottom, w: 2960, h: 1400 - glassBottom }} />
+      ) : null}
+      {show.floor !== false && !paintedFloor && (
         <g>
           <polygon points={`-520,${glassBottom + 6} 2440,${glassBottom + 6} 2440,1400 -520,1400`} fill="url(#floorWet)" />
           <g stroke="#151b20" strokeWidth={2} opacity={0.45}>

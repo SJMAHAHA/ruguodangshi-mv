@@ -3,7 +3,7 @@ import { AbsoluteFill } from "remotion";
 import { E, track, lerp, clamp } from "../../lib/anim";
 import { Cam, WorldSvg } from "../../lib/camera";
 import { useSongT } from "../useSongT";
-import { Defs, Moon, Skyline, Water, Jetty, BenchBack } from "../../env/Waterside";
+import { Defs, Moon, Water, Jetty, BenchBack, RiverBackdrop, RiverSkyClip } from "../../env/Waterside";
 import { PencilDefs } from "../../draw/Defs";
 import { TShapes } from "../../characters/front";
 import { backShapes } from "../../characters/back";
@@ -54,21 +54,19 @@ export const H1: React.FC = () => {
             <stop offset="1" stopColor={sky[2]} />
           </linearGradient>
         </defs>
-        <rect x={-900} y={-900} width={4200} height={1462} fill="url(#h1Sky)" />
-        {stars.map((s, i) => (
-          <circle key={i} cx={s.x} cy={s.y} r={s.s} fill="#d9d6c8" opacity={s.a * (1 - d)} />
-        ))}
-        {/* 天边的一线晨光 */}
-        <ellipse cx={1500} cy={560} rx={1500} ry={180} fill="#d8c6a2" opacity={0.35 * d} filter="url(#soft-blur-60)" />
-        <Moon x={moon.x} y={moon.y} r={moon.r} glow={1.4 * (1 - d * 0.7)} />
-        <g filter="url(#pencil-soft)">
-          <Skyline base={562} x0={-900} x1={3200} seed={7} />
+        {/* 天色：夜景与黎明两张背景板交叉淡化（城里的窗灯随之熄灭，水面跟着变亮） */}
+        <RiverBackdrop dawn={d} />
+        <RiverSkyClip id="h1sky" />
+        <g clipPath="url(#h1sky)">
+          {stars.map((s, i) => (
+            <circle key={i} cx={s.x} cy={s.y} r={s.s} fill="#d9d6c8" opacity={s.a * (1 - d)} />
+          ))}
+          {/* 月亮慢慢沉进城市的楼群后面 */}
+          <Moon x={moon.x} y={moon.y} r={moon.r} glow={1.4 * (1 - d * 0.7)} />
         </g>
-        {/* 城里的窗灯一盏盏熄灭：用天色盖住 */}
-        <rect x={-900} y={300} width={4200} height={262} fill={sky[2]} opacity={0.22 * d} />
-        <Water y0={560} y1={1500} moonX={moon.x} t={t} reflW={90 * (1 - d * 0.6)} />
-        {/* 水面也跟着天色变亮 */}
-        <rect x={-900} y={560} width={4200} height={940} fill={mixHex("#2a3946", "#8d968f", d)} opacity={0.5 * d} style={{ mixBlendMode: "screen" }} />
+        {/* 天边的一线晨光 */}
+        <ellipse cx={1500} cy={560} rx={1500} ry={180} fill="#d8c6a2" opacity={0.18 * d} filter="url(#soft-blur-60)" />
+        <Water y0={560} y1={1500} moonX={moon.x} t={t} reflW={90 * (1 - d * 0.6)} bare />
         <rect x={-900} y={520} width={4200} height={90} fill="#c9c7b8" opacity={0.1 + 0.2 * d} filter="url(#soft-blur-20)" />
         <Jetty near={[690, 1250, 1262]} far={[886, 1050, 650]} t={t} lit={lit} />
         <BenchBack x={968} y={690} w={900} scale={0.25} part="legs" />

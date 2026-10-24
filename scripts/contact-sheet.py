@@ -18,7 +18,11 @@ MOMENTS = [
 
 src, out = sys.argv[1], sys.argv[2]
 tmp = tempfile.mkdtemp()
-font_path = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
+# 中文字体：Linux 的 Noto CJK，或 macOS 自带的冬青黑体 / 华文黑体（取第一个存在的）
+font_path = next(
+    (f for f in ["/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", "/System/Library/Fonts/Hiragino Sans GB.ttc", "/System/Library/Fonts/STHeiti Light.ttc"] if os.path.exists(f)),
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+)
 try:
     f_big = ImageFont.truetype(font_path, 26)
     f_small = ImageFont.truetype(font_path, 22)

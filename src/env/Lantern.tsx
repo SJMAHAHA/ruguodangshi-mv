@@ -5,6 +5,7 @@ import { headShapes } from "../characters/head";
 import { TShapes } from "../characters/front";
 import { MAN_MEM, WOMAN_MEM } from "../characters/designs";
 import { HAND_FONT, BOOK_FONT } from "../ui/fonts";
+import { SvgImage } from "./Plate";
 
 /**
  * 河灯：木底座上一只方形纸灯，纸面朝镜头的一侧画着一小段回忆（棕褐铅笔线）。
@@ -14,7 +15,25 @@ export type LanternArt = "none" | "wire" | "book" | "glass" | "bench" | "boat";
 
 const SEP = C.memSepia;
 
+/** 纸面上的回忆小画：Seedream 画在白纸上的铅笔淡彩，白纸转成透明（scripts/chroma-key.py --white），透出灯光 */
+const PAINTED: Partial<Record<LanternArt, string>> = {
+  wire: "plates/lantern_wire.png",
+  book: "plates/lantern_book.png",
+  bench: "plates/lantern_bench.png",
+  boat: "plates/lantern_boat.png",
+};
+
 const Art: React.FC<{ art: LanternArt }> = ({ art }) => {
+  const painted = PAINTED[art];
+  if (painted)
+    return (
+      <SvgImage src={painted} rect={{ x: -49, y: -103, w: 98, h: 96 }} />
+    );
+  return <ArtSvg art={art} />;
+};
+
+/** 原来的线描小画（「执子之手」仍用手写字体） */
+const ArtSvg: React.FC<{ art: LanternArt }> = ({ art }) => {
   if (art === "wire") {
     const m = headShapes({ turn: 0.45, pitch: 0.1, eyeOpen: 0.6, gaze: 0.5, brow: 0, mouth: 0.6 }, MAN_MEM.look);
     const w = headShapes({ turn: -0.4, pitch: 0.15, eyeOpen: 0.3, gaze: -0.4, brow: 0, mouth: 0.7 }, WOMAN_MEM.look);

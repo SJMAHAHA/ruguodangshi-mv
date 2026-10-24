@@ -11,3 +11,11 @@ public/audio/
 
 # 完整版成片超过 GitHub 单文件 100 MB 上限，放在 Release
 deliverables/ruguodangshi_full_1080p.mp4
+
+# Codex 交来的原始素材和预览包（接入后的成品在 public/plates、public/chars；交付说明保留）
+incoming/*
+!incoming/HANDOFF*.md
+!incoming/done/
+incoming/done/*
+!incoming/done/HANDOFF*.md
+public/codex-assets/

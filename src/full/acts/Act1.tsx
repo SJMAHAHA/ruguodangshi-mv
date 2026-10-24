@@ -1,19 +1,20 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { BusStopWorld, STOP } from "../../env/BusStop";
-import { FRONT_NEUTRAL, FrontPose, FigureFront } from "../../characters/front";
-import { MAN, MAN_MEM, WOMAN_MEM } from "../../characters/designs";
-import { Bench } from "../../props/Bench";
+import { FRONT_NEUTRAL, FrontPose } from "../../characters/front";
+import { MAN } from "../../characters/designs";
 import { Phone } from "../../props/Phone";
 import { E, track, lerp } from "../../lib/anim";
 import { noise1 } from "../../lib/random";
 import { Cam } from "../../lib/camera";
 import { useSongT } from "../useSongT";
 import { C } from "../../config/palette";
-import { smoothClosed, smoothOpen, P } from "../../lib/geom";
+import { P } from "../../lib/geom";
 import { headShapes } from "../../characters/head";
 import { TShapes } from "../../characters/front";
 import { PencilDefs } from "../../draw/Defs";
+import { SvgImage } from "../../env/Plate";
+import { PhoneHand } from "../../props/Hands";
 
 /**
  * 第一幕「黄昏·冷淡」A1–A6（0:00–0:38.25）
@@ -54,7 +55,7 @@ const HerPhone: React.FC<{ t: number; hand: P; glow: number }> = ({ t, hand, glo
   const flick = 0.85 + 0.15 * Math.sin(t * 0.7) + (Math.floor(t * 0.45) % 2) * 0.06;
   return (
     <g>
-      <ellipse cx={STOP.womanX + 6} cy={SEAT_Y - 420 * K} rx={90} ry={110} fill="#cfe0e6" opacity={0.12 * glow * flick} style={{ mixBlendMode: "screen" }} filter="url(#soft-blur-20)" />
+      <ellipse cx={STOP.womanX + 6} cy={SEAT_Y - 460 * K} rx={90} ry={110} fill="#cfe0e6" opacity={0.12 * glow * flick} style={{ mixBlendMode: "screen" }} filter="url(#soft-blur-20)" />
       <g transform={`translate(${hand[0]},${hand[1]}) rotate(-58)`}>
         <rect x={-30} y={-17} width={60} height={34} rx={6} fill="#1a1e23" stroke={C.graphite} strokeWidth={2} />
         <rect x={-26} y={-13} width={52} height={26} rx={4} fill="#b9cdd2" opacity={0.85 * glow * flick} />
@@ -63,7 +64,7 @@ const HerPhone: React.FC<{ t: number; hand: P; glow: number }> = ({ t, hand, glo
   );
 };
 
-const benchCam = (t: number, t0: number, t1: number, s0 = 1.3, s1 = 1.32): Cam => ({ x: 985, y: 548, scale: track(t, [[t0, s0], [t1, s1, E.drift]]) });
+const benchCam = (t: number, t0: number, t1: number, s0 = 1.3, s1 = 1.32): Cam => ({ x: 985, y: 510, scale: track(t, [[t0, s0], [t1, s1, E.drift]]) });
 
 // ---------------- A1 黄昏全景 ----------------
 export const A1: React.FC = () => {
@@ -129,7 +130,7 @@ export const A3: React.FC = () => {
         glassDrops={0}
         man={manWaiting(
           t,
-          { turn: lerp(0.3, 0.56, turn), pitch: lerp(0.22, 0.05, turn) + down * 0.4, eyeOpen: lerp(0.8, 0.95, turn) - down * 0.35, brow: 0.35 + turn * 0.15, mouth: -0.15 - down * 0.15 },
+          { turn: lerp(0.42, 0.58, turn), pitch: lerp(0.15, 0.05, turn) + down * 0.4, eyeOpen: lerp(0.8, 0.95, turn) - down * 0.35, brow: 0.35 + turn * 0.15, mouth: -0.15 - down * 0.15 },
           { shoulderLift: inhale * 0.5, slump: 0.35 + down * 0.15 }
         )}
         woman={womanCold(t)}
@@ -157,6 +158,8 @@ export const A4: React.FC = () => {
   const follow = track(t, [[19.9, 0], [21.2, 1, E.inOut], [23.3, 1], [24.4, 0, E.inOut]]);
   const down = track(t, [[23.4, 0], [24.6, 1, E.inOut]]);
   const lookGlance = track(t, [[19.5, 0], [19.8, 0.35, E.out], [21.0, 0.35], [21.5, 0, E.inOut]]);
+  // 接 A3 结尾：他低着头；她一动，他才抬起头
+  const pre = track(t, [[19.2, 1], [19.9, 0, E.inOut]]);
   return (
     <AbsoluteFill>
       <BusStopWorld
@@ -165,7 +168,11 @@ export const A4: React.FC = () => {
         tod="dusk"
         rain={0}
         glassDrops={0}
-        man={manWaiting(t, { turn: lerp(0.38, 0.62, follow) - down * 0.3, pitch: lerp(0.18, 0.42, follow) + down * 0.15, eyeOpen: 0.8 - down * 0.25, brow: 0.35 + follow * 0.2 }, { slump: 0.35 + down * 0.15 })}
+        man={manWaiting(
+          t,
+          { turn: lerp(0.38, 0.62, follow) - down * 0.3 + pre * 0.07, pitch: lerp(0.18, 0.42, follow) + down * 0.15 + pre * 0.35, eyeOpen: 0.8 - down * 0.25 - pre * 0.32, brow: 0.35 + follow * 0.2, mouth: -0.2 - pre * 0.1 },
+          { slump: 0.35 + down * 0.15 + pre * 0.15 }
+        )}
         woman={womanCold(t, {
           head: { turn: 0.22 + lookGlance * 0.15, pitch: 0.62 - lookGlance * 0.15, eyeOpen: 0.48, gaze: 0.1 + lookGlance * 0.5, brow: 0.2, mouth: -0.1 },
           handR: { at: [hx, hy], fore: lerp(0.45, 0.75, carry), angle: -30 + carry * 20, curl: carry * 0.6 },
@@ -179,31 +186,14 @@ export const A4: React.FC = () => {
 };
 
 // ---------------- A5 / A6 他的手机锁屏：合影 ----------------
-/** 锁屏里的合影：同一张长椅，回忆配色 */
+/**
+ * 锁屏里的合影：Seedream 画的回忆合影（public/plates/memory_photo.jpg），
+ * 和同一张照片里去掉她的版本交叉淡化——她从照片里慢慢消失，他还侧着头对着那个位置笑。
+ */
 const LockPhoto: React.FC<{ herOpacity: number; t: number }> = ({ herOpacity, t }) => (
   <g>
-    <rect x={-220} y={-420} width={440} height={840} fill="#d9cdb2" />
-    <rect x={-220} y={-420} width={440} height={430} fill="#c9c3ac" />
-    <g transform="translate(0,40) scale(0.42)">
-      <rect x={-600} y={180} width={1200} height={600} fill="#b7a88a" />
-      <Bench w={900} x={0} y={160} scale={1} memory />
-      <g opacity={herOpacity}>
-        <FigureFront
-          pose={{ ...FRONT_NEUTRAL, head: { turn: -0.3, pitch: 0.18, eyeOpen: 0.3, gaze: -0.2, brow: 0, mouth: 0.8 }, headTilt: -14, headOffset: [-30, 22], lean: -7, bodyTurn: -0.25, legSlant: -0.4, handL: { at: [-30, -60], fore: 0.5 }, handR: { at: [34, -58], fore: 0.5 } }}
-          design={WOMAN_MEM}
-          x={150}
-          y={152}
-          scale={1.1}
-        />
-      </g>
-      <FigureFront
-        pose={{ ...FRONT_NEUTRAL, head: { turn: 0.38 * (0.4 + 0.6 * herOpacity), pitch: 0.08, eyeOpen: 0.75, gaze: 0.4, brow: 0, mouth: 0.6 }, bodyTurn: 0.2, handL: { at: [-34, -40], fore: 0.5, angle: 18 }, handR: { at: [90, -40], fore: 0.6 } }}
-        design={MAN_MEM}
-        x={-130}
-        y={152}
-        scale={1.1}
-      />
-    </g>
+    <SvgImage src="plates/memory_photo_alone.jpg" rect={{ x: -220, y: -420, w: 440, h: 840 }} />
+    <SvgImage src="plates/memory_photo.jpg" rect={{ x: -220, y: -420, w: 440, h: 840 }} opacity={herOpacity} />
     {/* 锁屏时间 */}
     <text x={0} y={-300} textAnchor="middle" fontFamily="RuguoSerif" fontSize={92} fill="#f4efe2" opacity={0.92} style={{ letterSpacing: "0.04em" }}>
       19:4{Math.min(9, 6 + Math.floor((t - 25.75) / 20))}
@@ -248,32 +238,13 @@ const PhoneShot: React.FC<{ t: number; herOpacity: number; screen: number; thumb
           <circle cx={1500} cy={120} r={60} fill="url(#bokeh)" />
         </g>
         <g transform={`translate(960,${455 + (scale - 1) * 60}) scale(${scale}) rotate(-5)`}>
-          {/* 左手从下方托住：手掌包住机身左下角，食指、中指指尖从右侧露出 */}
-          <path
-            d={smoothClosed([[-250, 250], [-196, 330], [-120, 420], [40, 470], [150, 520], [170, 640], [-60, 660], [-300, 640], [-360, 470], [-330, 330]], 0.85)}
-            fill={C.skin}
-            stroke={C.graphite}
-            strokeWidth={3}
-          />
-          <path d={smoothOpen([[-200, 560], [-90, 520], [20, 500]])} stroke={C.skinShade} strokeWidth={10} fill="none" opacity={0.5} />
-          {[[218, 120], [222, 210], [216, 300]].map(([x, y], i) => (
-            <path key={i} d={smoothClosed([[x - 24, y - 30], [x + 22, y - 34], [x + 40, y - 6], [x + 30, y + 26], [x - 24, y + 30]], 0.9)} fill={C.skin} stroke={C.graphite} strokeWidth={3} />
-          ))}
           <Phone x={0} y={0} w={460} h={900} screen={screen} id="lock" reflection={<Reflection />}>
             <LockPhoto herOpacity={herOpacity} t={t} />
             {/* 亮屏的冷光 */}
             <rect x={-230} y={-450} width={460} height={900} fill="#dfe8ea" opacity={0.05} />
           </Phone>
-          {/* 拇指沿屏幕左缘向上，A5 里轻轻摩挲 */}
-          <path
-            d={smoothClosed([[-286, 330], [-262, 210 + thumb * 30], [-226, 120 + thumb * 40], [-196, 112 + thumb * 40], [-192, 160 + thumb * 36], [-210, 260], [-226, 340]], 0.9)}
-            fill={C.skin}
-            stroke={C.graphite}
-            strokeWidth={3}
-          />
-          <path d={smoothOpen([[-222, 140 + thumb * 40], [-204, 132 + thumb * 40]])} stroke={C.graphite} strokeWidth={2} opacity={0.6} />
-          {/* 屏幕光照亮手指 */}
-          <rect x={-330} y={-460} width={600} height={1120} fill="#dfe8ea" opacity={0.06 * screen} style={{ mixBlendMode: "screen" }} />
+          {/* 托着手机的左手（水粉贴图，拇指在 A5 里轻轻摩挲） */}
+          <PhoneHand thumb={thumb} />
         </g>
       </svg>
     </AbsoluteFill>

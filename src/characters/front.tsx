@@ -35,6 +35,11 @@ export type FrontPose = {
   legSlant: number;
   /** 上身朝向（-1..1，正值转向画面右侧；圆柱投影） */
   bodyTurn?: number;
+  /**
+   * 上身前倾 0..1（正面看是躯干被压短、肩和头往下沉）。
+   * 不给时沿用旧的规则：随 stand 自动前倾一点。起身动作应显式给出：先前倾、再起身、最后挺直。
+   */
+  bend?: number;
 };
 
 export const FRONT_NEUTRAL: FrontPose = {
@@ -85,16 +90,29 @@ type Dim = {
   hand: number;
 };
 
+/**
+ * 比例（按真人量过）：站立时肩在身高 80%、腰 62%、裆 47%，约 7.2 头身；坐着时座面到头顶约为身高的 52%。
+ * 坐姿的脚和座面高度不动（与长椅一致），上身比旧版长 30–40、起身抬升从 250 降到 214（腿短一截），
+ * 手臂加长到垂手时手腕在裆部高度，头放大 7%。
+ */
 const DIM: Record<"m" | "f", Dim> = {
   m: {
-    headY: -424, neckW: 16, shoulderTip: 104, shoulderY: -306, joint: [90, -290], upper: 148, fore: 136,
-    sleeve: [54, 46, 40], waist: 94, hip: 108, kneeX: 58, kneeY: 58, ankleX: 66, ankleY: 250, shin: [56, 44], hand: 1,
+    headY: -454, neckW: 16, shoulderTip: 104, shoulderY: -336, joint: [90, -320], upper: 162, fore: 142,
+    sleeve: [54, 46, 40], waist: 94, hip: 108, kneeX: 58, kneeY: 58, ankleX: 66, ankleY: 250, shin: [56, 44], hand: 1.06,
   },
   f: {
-    headY: -398, neckW: 13, shoulderTip: 88, shoulderY: -290, joint: [76, -276], upper: 134, fore: 122,
-    sleeve: [44, 38, 32], waist: 68, hip: 100, kneeX: 22, kneeY: 58, ankleX: 18, ankleY: 238, shin: [40, 27], hand: 0.86,
+    headY: -438, neckW: 13, shoulderTip: 88, shoulderY: -330, joint: [76, -316], upper: 148, fore: 128,
+    sleeve: [44, 38, 32], waist: 68, hip: 100, kneeX: 22, kneeY: 58, ankleX: 18, ankleY: 238, shin: [40, 27], hand: 0.92,
   },
 };
+/** 起身时臀部抬高多少（站直后裆部在身高 47% 处） */
+export const RISE = 214;
+/** 头部整体放大 */
+export const HEAD_K = 1.07;
+
+/** 前倾时上身（肩、头）最多下沉的像素；显式的 bend 给得更多，才看得出是在前倾发力 */
+const forwardSink = (pose: FrontPose) =>
+  pose.bend !== undefined ? pose.bend * 95 : Math.sin(Math.PI * Math.min(1, pose.stand * 1.1)) * (pose.stand < 0.92 ? 1 : 0.3) * 30;
 
 const smoothstep = (x: number) => {
   const t = Math.max(0, Math.min(1, x));
@@ -106,8 +124,8 @@ export const frontShapes = (pose: FrontPose, d: Design): Shape[] => {
   const f = d.sex === "f";
   const out: Shape[] = [];
   const st = smoothstep(pose.stand);
-  const fwd = Math.sin(Math.PI * Math.min(1, pose.stand * 1.1)) * (pose.stand < 0.92 ? 1 : 0.3); // 起身时前倾
-  const rise = -250 * st;
+  const fwd = forwardSink(pose); // 前倾时上身下沉的像素
+  const rise = -RISE * st;
   const sl = pose.legSlant * (1 - st);
   const leanC: P = [0, rise - 20];
   /** 上半身点：加上起身位移、前倾下沉、侧倾 */
@@ -120,8 +138,8 @@ export const frontShapes = (pose: FrontPose, d: Design): Shape[] => {
     const c = Math.max(-1, Math.min(1, x / RB));
     return RB * Math.sin(Math.asin(c) + bt * k);
   };
-  const U = (p: P, sink = 1): P => rot([turnX(p[0], p[1]), p[1] + rise + fwd * 30 * sink * Math.min(1, -p[1] / 300)], pose.lean, leanC);
-  const slump = pose.slump * 12 - pose.shoulderLift * 9;
+  const U = (p: P, sink = 1): P => rot([turnX(p[0], p[1]), p[1] + rise + fwd * sink * Math.min(1, -p[1] / 300)], pose.lean, leanC);
+  const slump = pose.slump * 12 - pose.shoulderLift * 9 - (pose.breathe - 0.5) * 2.4; // 吸气时肩膀微微抬起
   const shY = D.shoulderY + slump;
   const tip = D.shoulderTip;
   const br = pose.breathe * 2.5;
@@ -129,7 +147,7 @@ export const frontShapes = (pose: FrontPose, d: Design): Shape[] => {
   // ================= 腿 =================
   for (const s of [-1, 1] as const) {
     const kneeSeated: P = [s * D.kneeX + sl * 18, D.kneeY];
-    const kneeStand: P = [s * (f ? 26 : 44), D.ankleY - (f ? 226 : 240)];
+    const kneeStand: P = [s * (f ? 26 : 44), D.ankleY - (f ? 226 : 236)];
     const knee = mix(kneeSeated, kneeStand, st);
     const ankle: P = [s * D.ankleX + sl * 40, D.ankleY];
     // 小腿（裤管 / 丝袜）
@@ -293,7 +311,8 @@ export const frontShapes = (pose: FrontPose, d: Design): Shape[] => {
     // 袖口
     out.push(L(`M${wo[0] - (wo[0] - wi[0]) * 0.02},${wo[1] - (wo[1] - wi[1]) * 0.02}L${wi[0]},${wi[1]}`, d.line, 1.8, 0.8));
     const dir = Math.atan2(wrist[1] - elbow[1], wrist[0] - elbow[0]);
-    out.push(...handShapes(wrist, (dir * 180) / Math.PI - 90 + (hp.angle ?? 0), hp, d, s));
+    // 手的形状带上标记，握东西时可以单独把手再画一次（画在道具上面）
+    out.push(...handShapes(wrist, (dir * 180) / Math.PI - 90 + (hp.angle ?? 0), hp, d, s).map((sh, i) => ({ ...sh, key: `hand${s === -1 ? "L" : "R"}-${i}` })));
   };
   arm(-1, pose.handL);
   arm(1, pose.handR);
@@ -301,46 +320,90 @@ export const frontShapes = (pose: FrontPose, d: Design): Shape[] => {
   // ================= 头 =================
   const hs = headShapes(pose.head, d.look);
   const tilt = pose.headTilt + pose.lean;
-  const tf = `translate(${headBase[0].toFixed(2)},${headBase[1].toFixed(2)}) rotate(${tilt.toFixed(2)})`;
+  const tf = `translate(${headBase[0].toFixed(2)},${headBase[1].toFixed(2)}) rotate(${tilt.toFixed(2)}) scale(${HEAD_K})`;
   out.unshift(...hs.back.map((x) => ({ ...x, d: `${tf}|${x.d}` })));
   out.push(...hs.front.map((x) => ({ ...x, d: `${tf}|${x.d}` })));
   return out;
 };
 
-/** 手：手背朝外的简化手形，angle=0 时手指朝下 */
+/**
+ * 手：手背朝外，angle=0 时手指朝下。手背靠手腕的一端窄、指节处宽；四根手指分开画（中指最长、小指最短，略微张开），
+ * 蜷起（curl）时手指变短、指尖变圆；拇指在靠身体中线的一侧斜着收进来。
+ */
 export const handShapes = (wrist: P, angle: number, hp: HandPose, d: Design, side: -1 | 1): Shape[] => {
   const k = DIM[d.sex].hand;
   const curl = hp.curl ?? 0;
-  const fl = (24 - curl * 13) * k; // 手指长度
-  const pw = 15.5 * k; // 半掌宽
-  const pl = 28 * k; // 掌长
+  const pw = 15 * k; // 半掌宽（指节处）
+  const pl = 26 * k; // 手背长
   const ts = -side; // 拇指朝身体中线
-  const hand: P[] = [
-    [-pw * 0.72, -2], [pw * 0.72, -2], [pw * 0.98, pl * 0.45], [pw * 1.02, pl * 0.95],
-    [pw * 0.95, pl + fl * 0.72], [pw * 0.62, pl + fl * 0.86], [pw * 0.35, pl + fl * 1.0], [0, pl + fl * 1.04],
-    [-pw * 0.38, pl + fl * 0.98], [-pw * 0.7, pl + fl * 0.86], [-pw * 0.98, pl + fl * 0.6], [-pw * 1.02, pl * 0.9], [-pw * 0.96, pl * 0.42],
-  ].map(([x, y]) => [x * -ts, y] as P);
-  const thumb: P[] = [
-    [ts * pw * 0.55, pl * 0.1], [ts * (pw + 7 * k), pl * 0.38], [ts * (pw + 9 * k), pl * 0.75 - curl * 3], [ts * (pw + 4 * k), pl * 0.98 - curl * 4],
-    [ts * (pw - 1), pl * 0.86], [ts * pw * 0.8, pl * 0.5],
-  ];
   const T = (pts: P[]) => pts.map((p) => rot(p, angle)).map(([x, y]) => [x + wrist[0], y + wrist[1]] as P);
   const out: Shape[] = [];
-  out.push({ d: smoothClosed(T(thumb), 0.9), fill: d.look.skin, line: d.line, lw: d.lw * 0.85 });
-  out.push({ d: smoothClosed(T(hand), 0.85), fill: d.look.skin, line: d.line, lw: d.lw * 0.85 });
-  // 指缝
-  for (const fx of [-0.36, 0.02, 0.4]) {
-    const a: P = [pw * fx * -ts, pl + 1];
-    const b: P = [pw * fx * -ts, pl + fl * (0.78 - curl * 0.3)];
-    out.push(L(smoothOpen(T([a, b])), d.line, 1.1, 0.5));
+  const skin = d.look.skin;
+  const shade = d.look.skinShade;
+  // 拇指（在手背后面伸出来）
+  const thLen = (21 - curl * 7) * k;
+  const tb: P = [ts * pw * 0.72, pl * 0.12];
+  const tdir = (ts * (24 + curl * 18) * Math.PI) / 180; // 往中线斜
+  const tt: P = [tb[0] + Math.sin(tdir) * thLen, tb[1] + Math.cos(tdir) * thLen];
+  const tn: P = [Math.cos(tdir), -Math.sin(tdir)];
+  const thumb: P[] = [
+    [tb[0] - tn[0] * 6 * k, tb[1] - tn[1] * 6 * k],
+    [tb[0] + tn[0] * 5.5 * k, tb[1] + tn[1] * 5.5 * k],
+    [tt[0] + tn[0] * 3.6 * k, tt[1] + tn[1] * 3.6 * k],
+    [tt[0] + (tt[0] - tb[0]) * 0.08, tt[1] + (tt[1] - tb[1]) * 0.08],
+    [tt[0] - tn[0] * 3.4 * k, tt[1] - tn[1] * 3.4 * k],
+  ];
+  out.push({ d: smoothClosed(T(thumb), 0.9), fill: skin, line: d.line, lw: d.lw * 0.8 });
+  // 手背：手腕窄，指节宽
+  const back: P[] = [
+    [-pw * 0.66, -2], [pw * 0.66, -2], [pw * 0.92, pl * 0.5], [pw * 1.0, pl * 0.96], [0, pl * 1.04], [-pw * 1.0, pl * 0.96], [-pw * 0.92, pl * 0.5],
+  ];
+  out.push({ d: smoothClosed(T(back), 0.8), fill: skin, line: d.line, lw: d.lw * 0.8 });
+  // 四根手指：从拇指一侧（食指）到另一侧（小指）
+  const fingers = [
+    { x: 0.7, len: 0.94, w: 3.5, spread: -5 },
+    { x: 0.24, len: 1.0, w: 3.7, spread: -1.5 },
+    { x: -0.22, len: 0.95, w: 3.5, spread: 2 },
+    { x: -0.66, len: 0.76, w: 3.0, spread: 6 },
+  ];
+  const fl = 25 * k * (1 - curl * 0.48);
+  for (const fg of fingers) {
+    const bx = ts * fg.x * pw;
+    const base: P = [bx, pl * 0.92];
+    const a = (ts * fg.spread * Math.PI) / 180;
+    const flen = fl * fg.len;
+    const tip: P = [base[0] - Math.sin(a) * flen, base[1] + Math.cos(a) * flen];
+    const n: P = [Math.cos(a), Math.sin(a)];
+    const w0 = fg.w * k;
+    const w1 = fg.w * k * (0.78 + curl * 0.15);
+    const finger: P[] = [
+      [base[0] - n[0] * w0, base[1] - n[1] * w0],
+      [base[0] + n[0] * w0, base[1] + n[1] * w0],
+      [tip[0] + n[0] * w1, tip[1] + n[1] * w1],
+      [tip[0] - Math.sin(a) * w1 * 0.9, tip[1] + Math.cos(a) * w1 * 0.9],
+      [tip[0] - n[0] * w1, tip[1] - n[1] * w1],
+    ];
+    out.push({ d: smoothClosed(T(finger), 0.85), fill: skin, line: d.line, lw: d.lw * 0.7 });
+    // 指甲：手指伸直时指尖露出一点淡色
+    if (curl < 0.5) {
+      const nail: P = [tip[0] - Math.sin(a) * w1 * 0.1, tip[1] + Math.cos(a) * w1 * 0.1 - 1.5 * k];
+      out.push({ d: smoothClosed(T([[nail[0] - w1 * 0.55, nail[1] - 2 * k], [nail[0] + w1 * 0.55, nail[1] - 2 * k], [nail[0] + w1 * 0.45, nail[1] + 2 * k], [nail[0] - w1 * 0.45, nail[1] + 2 * k]]), 0.9), fill: "#f6ece2", line: null, op: 0.35 * (1 - curl * 2) });
+    }
+    // 第二指节的褶
+    const mid: P = [base[0] + (tip[0] - base[0]) * 0.45, base[1] + (tip[1] - base[1]) * 0.45];
+    out.push(L(smoothOpen(T([[mid[0] - n[0] * w0 * 0.6, mid[1] - n[1] * w0 * 0.6], [mid[0] + n[0] * w0 * 0.6, mid[1] + n[1] * w0 * 0.6]])), d.line, 0.9, 0.3 + curl * 0.2));
   }
-  // 指节阴影
-  out.push({ d: smoothClosed(T([[-pw * 0.9, pl - 2], [pw * 0.9, pl - 2], [pw * 0.85, pl + 6], [-pw * 0.85, pl + 6]]), 0.6), fill: d.look.skinShade, line: null, op: 0.3 + curl * 0.35 });
+  // 指节的明暗：靠小指一侧（背光）压一层阴影，指节一排小高光
+  out.push({ d: smoothClosed(T([[-ts * pw * 0.2, pl * 0.3], [-ts * pw * 0.98, pl * 0.45], [-ts * pw * 1.0, pl * 0.98], [-ts * pw * 0.3, pl * 1.02]]), 0.8), fill: shade, line: null, op: 0.35 });
+  for (const fg of fingers.slice(0, 3)) {
+    const kx = ts * fg.x * pw;
+    out.push({ d: smoothClosed(T([[kx - 2.4 * k, pl * 0.86], [kx + 2.4 * k, pl * 0.86], [kx + 1.8 * k, pl * 0.94], [kx - 1.8 * k, pl * 0.94]]), 0.9), fill: "#ffffff", line: null, op: 0.12 + curl * 0.08 });
+  }
   return out;
 };
 
 /** 渲染：把 "transform|d" 形式的 path 交给 <g transform> */
-export const TShapes: React.FC<{ shapes: Shape[]; line: string; lw: number; filter?: string }> = ({ shapes, line, lw, filter }) => {
+export const TShapes: React.FC<{ shapes: Shape[]; line: string; lw: number; filter?: string; paint?: boolean }> = ({ shapes, line, lw, filter, paint = false }) => {
   const uid = React.useId().replace(/:/g, "");
   return (
     <g filter={filter}>
@@ -349,7 +412,7 @@ export const TShapes: React.FC<{ shapes: Shape[]; line: string; lw: number; filt
         const tf = idx >= 0 ? s.d.slice(0, idx) : undefined;
         const dd = idx >= 0 ? s.d.slice(idx + 1) : s.d;
         const cl = s.clip && s.clip.includes("|") ? s.clip.slice(s.clip.indexOf("|") + 1) : s.clip;
-        return <Shapes key={i} idBase={`${uid}-${i}`} shapes={[{ ...s, d: dd, clip: cl }]} defaultLine={line} defaultLw={lw} transform={tf} />;
+        return <Shapes key={i} idBase={`${uid}-${i}`} shapes={[{ ...s, d: dd, clip: cl }]} defaultLine={line} defaultLw={lw} transform={tf} paint={paint} />;
       })}
     </g>
   );
@@ -367,7 +430,7 @@ export const FigureFront: React.FC<{
   const shapes = frontShapes(pose, design);
   return (
     <g transform={`translate(${x},${y}) scale(${scale})`} opacity={opacity}>
-      <TShapes shapes={shapes} line={design.line} lw={design.lw} filter={filter} />
+      <TShapes shapes={shapes} line={design.line} lw={design.lw} filter={filter} paint />
     </g>
   );
 };
@@ -379,8 +442,8 @@ export const FigureFront: React.FC<{
 export const headAnchor = (pose: FrontPose, d: Design): { head: P; tilt: number; earL: P; earR: P } => {
   const D = DIM[d.sex];
   const st = smoothstep(pose.stand);
-  const fwd = Math.sin(Math.PI * Math.min(1, pose.stand * 1.1)) * (pose.stand < 0.92 ? 1 : 0.3);
-  const rise = -250 * st;
+  const fwd = forwardSink(pose);
+  const rise = -RISE * st;
   const leanC: P = [0, rise - 20];
   const bt = (pose.bodyTurn ?? 0) * 0.42;
   const RB = D.shoulderTip + 14;
@@ -390,11 +453,57 @@ export const headAnchor = (pose: FrontPose, d: Design): { head: P; tilt: number;
     const c = Math.max(-1, Math.min(1, x / RB));
     return RB * Math.sin(Math.asin(c) + bt * k);
   };
-  const U = (p: P): P => rot([turnX(p[0], p[1]), p[1] + rise + fwd * 30 * Math.min(1, -p[1] / 300)], pose.lean, leanC);
+  const U = (p: P): P => rot([turnX(p[0], p[1]), p[1] + rise + fwd * Math.min(1, -p[1] / 300)], pose.lean, leanC);
   const head = U([pose.headOffset[0], D.headY + pose.headOffset[1] + pose.slump * 16]);
   const tilt = pose.headTilt + pose.lean;
-  const R = d.sex === "f" ? 44 : 47;
+  const R = (d.sex === "f" ? 44 : 47) * HEAD_K;
   const yaw = pose.head.turn * 0.62;
-  const ear = (s: -1 | 1): P => rot([head[0] + R * Math.sin((s * Math.PI) / 2 + yaw) - s * 2, head[1] + (d.sex === "f" ? 4 : 2)], tilt, head);
+  const ear = (s: -1 | 1): P => rot([head[0] + R * Math.sin((s * Math.PI) / 2 + yaw) - s * 2 * HEAD_K, head[1] + (d.sex === "f" ? 4 : 2) * HEAD_K], tilt, head);
   return { head, tilt, earL: ear(-1), earR: ear(1) };
 };
+
+/** 站直、手臂自然下垂时手腕的位置（局部坐标）：手腕约在裆部高度，手臂几乎伸直 */
+export const HANG = (d: Design, side: -1 | 1): P => [side * (d.sex === "f" ? 84 : 96), d.sex === "f" ? -258 : -240];
+
+/**
+ * 起身时一只手腕的位置（局部坐标）。side：-1 画面左手 / 1 画面右手。
+ * 坐着时在 rest；前倾时滑到大腿上；起身的前半段撑着大腿跟着一起升高；
+ * 腿蹬直以后松开，向外一荡再垂到身侧（hang）。所有位置都限制在手臂够得着的范围内，不会把手臂拉长。
+ */
+export const riseHand = (
+  pose: Pick<FrontPose, "stand" | "bend" | "slump" | "shoulderLift" | "legSlant">,
+  d: Design,
+  side: -1 | 1,
+  rest: P,
+  hang: P = HANG(d, side)
+): { at: P; fore: number; curl: number } => {
+  const D = DIM[d.sex];
+  const st = smoothstep(pose.stand);
+  const bend = pose.bend ?? 0;
+  const rise = -RISE * st;
+  const sl = (pose.legSlant ?? 0) * (1 - st);
+  // 大腿上靠近膝盖的一点（坐着时大腿朝向镜头，被压短）
+  const hipP: P = [side * (d.sex === "f" ? 30 : 44), rise + 6];
+  const knee = mix([side * D.kneeX + sl * 18, D.kneeY], [side * (d.sex === "f" ? 26 : 44), D.ankleY - (d.sex === "f" ? 226 : 236)], st);
+  const thigh: P = [lerp(hipP[0], knee[0], 0.6) + side * 10, lerp(hipP[1], knee[1], 0.6) - 16];
+  // 前倾：从 rest 滑到大腿上
+  const onThigh = smoothstep(Math.min(1, bend * 1.6));
+  // 腿基本蹬直后松手
+  const release = smoothstep((pose.stand - 0.62) / 0.33);
+  let at: P = mix(mix(rest, thigh, onThigh), hang, release);
+  // 松手时向外荡一下（跟随动作）
+  at = [at[0] + side * Math.sin(Math.PI * release) * 14, at[1] - Math.sin(Math.PI * release) * 10];
+  // 够不着就沿着肩膀方向收回来
+  const slump = (pose.slump ?? 0) * 12 - (pose.shoulderLift ?? 0) * 9;
+  const J: P = [side * D.joint[0], D.joint[1] + slump + rise + forwardSink(pose as FrontPose) * Math.min(1, -D.joint[1] / 300)];
+  const fore = lerp(lerp(0.62, 0.9, onThigh), 1, release);
+  const reach = (D.upper + D.fore * fore) * 0.97;
+  const dx = at[0] - J[0];
+  const dy = at[1] - J[1];
+  const dist = Math.hypot(dx, dy);
+  if (dist > reach) at = [J[0] + (dx / dist) * reach, J[1] + (dy / dist) * reach];
+  return { at, fore, curl: lerp(0.15, 0.45, onThigh * (1 - release)) };
+};
+
+/** 只取一只手的形状（和 frontShapes 里完全同一个位置），用于把握着道具的手画在道具上面 */
+export const handOnlyShapes = (pose: FrontPose, d: Design, which: "L" | "R"): Shape[] => frontShapes(pose, d).filter((sh) => sh.key?.startsWith(`hand${which}-`));

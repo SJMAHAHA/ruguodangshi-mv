@@ -3,7 +3,7 @@ import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { E, track, lerp } from "../lib/anim";
 import { FPS, SHOTS } from "../config/timeline";
 import { Cam, WorldSvg } from "../lib/camera";
-import { Defs, Sky, Moon, Skyline, Water, Willow, Jetty, Boat, BenchBack } from "../env/Waterside";
+import { Defs, Moon, Water, Willow, Jetty, Boat, BenchBack, RiverBackdrop, RiverSkyClip } from "../env/Waterside";
 import { PencilDefs } from "../draw/Defs";
 import { TShapes } from "../characters/front";
 import { backShapes } from "../characters/back";
@@ -72,13 +72,13 @@ export const S4Waterside: React.FC = () => {
       <WorldSvg cam={cam}>
         <PencilDefs />
         <Defs />
-        <Sky y0={-800} y1={562} />
-        <Moon x={MOON4.x} y={MOON4.y} r={MOON4.r} glow={1.6 + flash} />
-        <ellipse cx={MOON4.x} cy={MOON4.y} rx={900} ry={520} fill="#7f8f96" opacity={0.08} filter="url(#soft-blur-60)" />
-        <g filter="url(#pencil-soft)">
-          <Skyline base={562} x0={-300} x1={2240} seed={7} />
+        <RiverBackdrop />
+        <RiverSkyClip id="s4sky" />
+        <g clipPath="url(#s4sky)">
+          <Moon x={MOON4.x} y={MOON4.y} r={MOON4.r} glow={1.6 + flash} />
         </g>
-        <Water y0={560} y1={1260} moonX={MOON4.x} t={t} reflW={90} />
+        <ellipse cx={MOON4.x} cy={MOON4.y} rx={900} ry={520} fill="#7f8f96" opacity={0.08} filter="url(#soft-blur-60)" />
+        <Water y0={560} y1={1260} moonX={MOON4.x} t={t} reflW={90} bare />
         {/* 近岸：现代的护栏与站牌延续到古渡口 */}
         <g filter="url(#pencil-soft)">
           <path d="M-300,860 C100,880 420,930 660,1010 L840,1260 L-300,1260 Z" fill="#161e22" stroke={C.graphite} strokeWidth={2} />

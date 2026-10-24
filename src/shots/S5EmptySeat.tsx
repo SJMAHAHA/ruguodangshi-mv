@@ -166,7 +166,7 @@ export const S5EmptySeat: React.FC = () => {
         <BenchBack x={BENCH.x} y={BENCH.y} w={BENCH.w} scale={BENCH.scale} part="legs" />
         <ellipse cx={BENCH.x} cy={BENCH.y + 246} rx={600} ry={22} fill="#141814" opacity={0.45} />
         <g transform={`translate(${HIM.x},${HIM.y}) scale(${HIM.scale})`}>
-          <TShapes shapes={backShapes({ headTurn: turn, headTilt: 2 + turn * 4, slump: 0.55, lean: 1 }, MAN)} line={MAN.line} lw={MAN.lw} filter="url(#pencil)" />
+          <TShapes shapes={backShapes({ headTurn: turn, headTilt: 2 + turn * 4, slump: 0.55, lean: 1 }, MAN)} line={MAN.line} lw={MAN.lw} filter="url(#pencil)" paint />
         </g>
       </WorldSvg>
       {/* 她的回忆轮廓（Canvas：画出 → 擦除 → 留下淡印） */}
